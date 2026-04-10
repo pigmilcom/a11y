@@ -44,7 +44,6 @@
         "build:css:min": "node scripts/build-css.js",
         "build:license": "node scripts/build-license.js",
         "build:cdn": "npm run build:css && tsup --config tsup.cdn.config.mjs",
-        "build:gh": "node scripts/build-gh.mjs",
         "build": "npm run build:js && npm run build:js:min && npm run build:css && npm run build:css:min && npm run build:license && npm run build:cdn",
         "dev": "tsup --watch",
         "prepublishOnly": "npm run build"
