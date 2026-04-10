@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@pigmilcom/a11y — Live Demo</title>
+
+    <!--
+    ════════════════════════════════════════════════════════════════════════
+      @pigmilcom/a11y — Plug & Play Demo
+
+      This entire page requires ZERO React, ZERO npm, ZERO build step.
+      The widget loads via one script tag. That is it.
+    ════════════════════════════════════════════════════════════════════════
+
+      CDN options:
+        jsDelivr (recommended): https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.1.1/dist/a11y.cdn.js
+        Self-hosted:            https://cdn.pigmil.com/a11y/dist/a11y.cdn.js
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.1.1/dist/a11y.cdn.js" data-position="bottom-right"></script>
+
+    <!-- Theme init: apply saved preference before first paint to avoid flash -->
+    <script>
+    (function(){
+        var s=localStorage.getItem('pgm-theme')||'system';
+        var mq=window.matchMedia('(prefers-color-scheme: dark)');
+        var dark=(s==='dark')||(s==='system'&&mq.matches);
+        if(!dark) document.documentElement.setAttribute('data-theme','light');
+        else document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme-pref',s);
+    })();
+    </script>
+
+    <style>
+    /* ==========================================================
+       THEME TOKENS  (dark = default, light = [data-theme="light"])
+    ========================================================== */
+    :root {
+        --bg:            #040608;
+        --bg-nav:        rgba(4,6,10,0.92);
+        --bg-card:       rgba(255,255,255,0.02);
+        --bg-card-h:     rgba(255,255,255,0.04);
+        --bg-card-acc:   rgba(0,229,160,0.03);
+        --bg-code:       rgba(255,255,255,0.05);
+        --bg-pre:        rgba(255,255,255,0.03);
+        --border:        rgba(255,255,255,0.07);
+        --border-nav:    rgba(255,255,255,0.06);
+        --border-pre:    rgba(255,255,255,0.06);
+        --border-acc:    rgba(0,229,160,0.18);
+        --text:          #eef1f8;
+        --text-muted:    rgba(255,255,255,0.45);
+        --text-dim:      rgba(255,255,255,0.35);
+        --text-faint:    rgba(255,255,255,0.25);
+        --text-link:     rgba(255,255,255,0.4);
+        --text-link-h:   rgba(255,255,255,0.7);
+        --text-pre:      rgba(255,255,255,0.68);
+        --text-feat:     rgba(255,255,255,0.88);
+        --text-feat-p:   rgba(255,255,255,0.38);
+        --text-card-n:   rgba(255,255,255,0.35);
+        --text-read:     rgba(255,255,255,0.55);
+        --text-read-h:   rgba(255,255,255,0.9);
+        --text-read-f:   rgba(255,255,255,0.2);
+        --scrollbar-th:  rgba(255,255,255,0.14);
+        --scrollbar-pre: rgba(255,255,255,0.1);
+        --hero-title:    #fff;
+        --hero-cmd-bg:   rgba(255,255,255,0.03);
+        --hero-cmd-bd:   rgba(255,255,255,0.1);
+    }
+    [data-theme="light"] {
+        --bg:            #f5f6fa;
+        --bg-nav:        rgba(245,246,250,0.92);
+        --bg-card:       rgba(0,0,0,0.025);
+        --bg-card-h:     rgba(0,0,0,0.04);
+        --bg-card-acc:   rgba(0,180,120,0.04);
+        --bg-code:       rgba(0,0,0,0.055);
+        --bg-pre:        rgba(0,0,0,0.03);
+        --border:        rgba(0,0,0,0.09);
+        --border-nav:    rgba(0,0,0,0.08);
+        --border-pre:    rgba(0,0,0,0.08);
+        --border-acc:    rgba(0,160,100,0.22);
+        --text:          #0f1117;
+        --text-muted:    rgba(0,0,0,0.5);
+        --text-dim:      rgba(0,0,0,0.4);
+        --text-faint:    rgba(0,0,0,0.3);
+        --text-link:     rgba(0,0,0,0.45);
+        --text-link-h:   rgba(0,0,0,0.75);
+        --text-pre:      rgba(0,0,0,0.65);
+        --text-feat:     rgba(0,0,0,0.85);
+        --text-feat-p:   rgba(0,0,0,0.4);
+        --text-card-n:   rgba(0,0,0,0.4);
+        --text-read:     rgba(0,0,0,0.55);
+        --text-read-h:   rgba(0,0,0,0.88);
+        --text-read-f:   rgba(0,0,0,0.25);
+        --scrollbar-th:  rgba(0,0,0,0.18);
+        --scrollbar-pre: rgba(0,0,0,0.12);
+        --hero-title:    #0a0d14;
+        --hero-cmd-bg:   rgba(0,0,0,0.03);
+        --hero-cmd-bd:   rgba(0,0,0,0.12);
+    }
+
+    /* ==========================================================
+       BASE RESET
+    ========================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+        min-height: 100vh;
+        line-height: 1.5;
+        transition: background 200ms, color 200ms;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: #00e5a0; text-decoration: none; transition: opacity 150ms; }
+    a:hover { opacity: 0.75; text-decoration: underline; }
+
+    /* ==========================================================
+       TYPOGRAPHY HELPERS
+    ========================================================== */
+    .label {
+        display: block;
+        font-size: 0.58rem;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        color: var(--text-faint);
+    }
+    code {
+        font-family: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+        background: var(--bg-code);
+        color: #00e5a0;
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+    pre {
+        background: var(--bg-pre);
+        border: 1px solid var(--border-pre);
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+        font-size: 0.72rem;
+        line-height: 1.75;
+        color: var(--text-pre);
+        max-width: 100%;
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-pre) transparent;
+    }
+    pre::-webkit-scrollbar { height: 3px; }
+    pre::-webkit-scrollbar-track { background: transparent; }
+    pre::-webkit-scrollbar-thumb { background: var(--scrollbar-th); border-radius: 9999px; }
+    pre code { background: none; padding: 0; border-radius: 0; color: inherit; font-size: inherit; }
+
+    /* ==========================================================
+       LAYOUT
+    ========================================================== */
+    .wrap    { width: 100%; max-width: 64rem; margin: 0 auto; padding: 0 1.5rem; }
+    .wrap-md { width: 100%; max-width: 48rem; margin: 0 auto; padding: 0 1.5rem; }
+    .wrap-sm { width: 100%; max-width: 38rem; margin: 0 auto; padding: 0 1.5rem; }
+    .section { padding-bottom: 5rem; }
+
+    /* ==========================================================
+       NAV
+    ========================================================== */
+    .nav {
+        position: sticky; top: 0; z-index: 50;
+        border-bottom: 1px solid var(--border-nav);
+        background: var(--bg-nav);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: background 200ms, border-color 200ms;
+    }
+    .nav-inner {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; padding: 0.75rem 1.5rem; flex-wrap: wrap;
+    }
+    .nav-brand {
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+        color: #00e5a0; text-transform: uppercase; text-decoration: none; flex-shrink: 0;
+    }
+    .nav-brand:hover { opacity: 1; text-decoration: none; }
+    .nav-links { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .nav-links a {
+        font-size: 0.7rem; color: var(--text-link);
+        text-decoration: none; white-space: nowrap;
+    }
+    .nav-links a:hover { color: var(--text-link-h); text-decoration: none; opacity: 1; }
+    .nav-links .nav-gh:hover { color: #00e5a0; }
+
+    /* Theme toggle */
+    .theme-toggle {
+        display: flex; align-items: center;
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: 9999px; padding: 2px; gap: 0; flex-shrink: 0;
+        transition: background 200ms, border-color 200ms;
+    }
+    .theme-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 1.625rem; height: 1.375rem; border-radius: 9999px;
+        border: none; background: transparent; cursor: pointer;
+        color: var(--text-link); transition: background 120ms, color 120ms;
+        padding: 0; font-size: 0.7rem; line-height: 1;
+    }
+    .theme-btn:hover { color: var(--text-link-h); }
+    .theme-btn[aria-pressed="true"] {
+        background: #00e5a0;
+        color: #021a11;
+    }
+    .theme-btn svg { width: 0.75rem; height: 0.75rem; flex-shrink: 0; }
+
+    /* ==========================================================
+       BADGE
+    ========================================================== */
+    .badge {
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        border-radius: 9999px; border: 1px solid rgba(0,229,160,0.25);
+        background: rgba(0,229,160,0.06); padding: 0.25rem 0.75rem;
+        font-size: 0.6rem; font-weight: 500; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #00e5a0;
+    }
+    .badge-dot {
+        width: 0.375rem; height: 0.375rem;
+        border-radius: 9999px; background: #00e5a0; flex-shrink: 0;
+    }
+
+    /* ==========================================================
+       HERO
+    ========================================================== */
+    .hero {
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; padding: 5rem 1.5rem 4rem;
+    }
+    .hero h1 {
+        margin: 1.5rem 0 1rem; max-width: 34rem;
+        font-size: clamp(1.75rem, 5vw, 3rem);
+        font-weight: 800; line-height: 1.12;
+        letter-spacing: -0.025em; color: var(--hero-title);
+    }
+    .hero-gradient {
+        background: linear-gradient(135deg, #00e5a0 20%, #38bdf8 80%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+        max-width: 30rem; font-size: 0.9rem; line-height: 1.75;
+        color: var(--text-muted); margin-bottom: 2.5rem;
+    }
+    .hero-actions {
+        display: flex; flex-wrap: wrap; align-items: center;
+        justify-content: center; gap: 0.75rem;
+    }
+    .hero-cmd {
+        display: inline-block;
+        font-family: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+        font-size: 0.8rem; color: #00e5a0;
+        background: var(--hero-cmd-bg);
+        border: 1px solid var(--hero-cmd-bd); border-radius: 6px;
+        padding: 0.5rem 1.125rem; user-select: all; cursor: text; white-space: nowrap;
+    }
+    .hero-btn {
+        display: inline-block; font-size: 0.8rem; color: var(--text-link);
+        border: 1px solid var(--hero-cmd-bd); border-radius: 6px;
+        padding: 0.5rem 1.125rem; text-decoration: none;
+        transition: border-color 150ms, color 150ms; white-space: nowrap;
+    }
+    .hero-btn:hover {
+        border-color: var(--border); color: var(--text-link-h);
+        text-decoration: none; opacity: 1;
+    }
+    .hero-anims { margin-top: 3.5rem; display: flex; align-items: center; gap: 1.25rem; }
+    .anim-ring {
+        width: 2.5rem; height: 2.5rem; border-radius: 50%;
+        border: 2px dashed var(--border); border-top-color: #00e5a0; flex-shrink: 0;
+    }
+    .anim-box {
+        width: 2.5rem; height: 2.5rem; border-radius: 5px;
+        border: 1px solid rgba(0,229,160,0.2); background: rgba(0,229,160,0.05); flex-shrink: 0;
+    }
+    .anim-hint { font-size: 0.62rem; line-height: 1.55; color: var(--text-dim); text-align: left; }
+    .anim-hint strong { display: block; color: var(--text-muted); margin-bottom: 0.2rem; }
+
+    /* ==========================================================
+       CARDS  (How it works)
+    ========================================================== */
+    .cards {
+        display: grid; gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    }
+    .card {
+        border-radius: 8px; border: 1px solid var(--border);
+        background: var(--bg-card); padding: 1.25rem;
+        transition: border-color 150ms, background 150ms;
+    }
+    .card:hover { border-color: var(--border); background: var(--bg-card-h); }
+    .card--accent { border-color: var(--border-acc); background: var(--bg-card-acc); }
+    .card--accent:hover { border-color: rgba(0,229,160,0.3); }
+    .card-tag {
+        display: block; font-size: 0.6rem; font-weight: 600;
+        letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.25rem;
+    }
+    .card-sub { display: block; font-size: 0.55rem; opacity: 0.45; margin-bottom: 0.75rem; }
+    .card-note { margin-top: 0.75rem; font-size: 0.6rem; line-height: 1.65; color: var(--text-card-n); }
+
+    /* ==========================================================
+       FEATURES GRID
+    ========================================================== */
+    .features {
+        display: grid; gap: 0.75rem;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+    }
+    .feature {
+        border-radius: 8px; border: 1px solid var(--border);
+        background: var(--bg-card); padding: 1.25rem;
+        transition: border-color 150ms, background 150ms;
+    }
+    .feature:hover { border-color: var(--border); background: var(--bg-card-h); }
+    .feature-bar { height: 2px; width: 1.75rem; border-radius: 9999px; margin-bottom: 0.75rem; }
+    .feature h3 { font-size: 0.75rem; font-weight: 600; color: var(--text-feat); margin-bottom: 0.375rem; }
+    .feature p { font-size: 0.65rem; line-height: 1.62; color: var(--text-feat-p); }
+
+    /* ==========================================================
+       READING SAMPLE
+    ========================================================== */
+    .reading { padding-bottom: 9rem; }
+    .reading-header { border-left: 2px solid #00e5a0; padding-left: 1rem; margin-bottom: 1.75rem; }
+    .reading-header h2 { font-size: 1.125rem; font-weight: 700; color: var(--text-read-h); }
+    .reading-header p { margin-top: 0.25rem; font-size: 0.65rem; color: var(--text-dim); }
+    .reading p { font-size: 0.9rem; line-height: 1.8; color: var(--text-read); margin-bottom: 1rem; }
+    .reading-footer { margin-top: 2rem; text-align: center; font-size: 0.58rem; color: var(--text-read-f); }
+    .reading-footer a { color: inherit; }
+    .reading-footer a:hover { color: var(--text-read); opacity: 1; }
+
+    /* ==========================================================
+       ANIMATIONS
+    ========================================================== */
+    @keyframes spin-slow  { to { transform: rotate(360deg); } }
+    @keyframes float      { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes glow-pulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+    @keyframes pgm-demo-pulse {
+        0%,100% { box-shadow: 0 0 0 0    rgba(0,229,160,0.45), 0 8px 24px rgba(0,0,0,0.5); }
+        50%      { box-shadow: 0 0 0 12px rgba(0,229,160,0),    0 8px 24px rgba(0,0,0,0.5); }
+    }
+    @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes arrow-bounce {
+        0%,100% { transform: rotate(45deg) translate(0,0); }
+        50%      { transform: rotate(45deg) translate(3px,3px); }
+    }
+    .anim-spin  { animation: spin-slow  7s linear infinite; }
+    .anim-float { animation: float      4s ease-in-out infinite; }
+    .anim-glow  { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+    /* ==========================================================
+       WIDGET OVERRIDES  (demo showcase — uses public a11y-widget-* API)
+    ========================================================== */
+    /* Trigger button — round, pulsing glow */
+    .a11y-widget-btn {
+        width: 3.375rem !important;
+        height: 3.375rem !important;
+        border-radius: 50% !important;
+        background: rgba(0,229,160,0.1) !important;
+        border: 1.5px solid rgba(0,229,160,0.5) !important;
+        color: #00e5a0 !important;
+        animation: pgm-demo-pulse 2.5s ease-in-out infinite;
+    }
+    /* Dialog — stronger shadow */
+    .a11y-widget-dialog {
+        box-shadow:
+            0 30px 60px -12px rgba(0,0,0,0.85),
+            0 0 0 1px rgba(0,229,160,0.1) !important;
+    }
+    /* Toggle rows */
+    .a11y-widget-toggle-btn:hover {
+        background: rgba(255,255,255,0.05) !important;
+    }
+
+    /* ==========================================================
+       ARROW HINT
+    ========================================================== */
+    #a11y-hint {
+        position: fixed;
+        bottom: calc(1.25rem + 4.5rem);
+        right: calc(1.25rem + 1rem);
+        z-index: 9996;
+        pointer-events: none;
+        display: flex; flex-direction: column; align-items: flex-end; gap: 0.375rem;
+        opacity: 0;
+        animation: fade-in-up 0.5s ease 1s forwards;
+    }
+    .hint-label {
+        font-size: 0.58rem; font-weight: 700; letter-spacing: 0.15em;
+        text-transform: uppercase; color: #00e5a0; white-space: nowrap;
+    }
+    .hint-arrow {
+        width: 1rem; height: 1rem;
+        border-right: 2px solid #00e5a0; border-bottom: 2px solid #00e5a0;
+        border-radius: 1px; margin-right: 0.5rem; opacity: 0.85;
+        animation: arrow-bounce 1.2s ease-in-out 1.5s infinite;
+    }
+
+    /* ==========================================================
+       REDUCE MOTION OVERRIDES
+    ========================================================== */
+    html.a11y-reduce-motion .anim-spin,
+    html.a11y-reduce-motion .anim-float,
+    html.a11y-reduce-motion .anim-glow,
+    html.a11y-reduce-motion .a11y-widget-btn,
+    html.a11y-reduce-motion #a11y-hint { animation: none !important; }
+
+    /* ==========================================================
+       RESPONSIVE
+    ========================================================== */
+    @media (max-width: 480px) {
+        .nav-inner  { padding: 0.6rem 1rem; }
+        .nav-links  { gap: 0.75rem; }
+        .hero       { padding: 3rem 1rem; }
+        .hero-anims { flex-direction: column; text-align: center; }
+        .anim-hint  { text-align: center; }
+        #a11y-hint  { display: none; }
+    }
+    @media (max-width: 380px) {
+        .nav-links a[href="#features"],
+        .nav-links a[href="#sample"] { display: none; }
+    }
+    </style>
+</head>
+
+<body>
+
+    <!-- Nav -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">@pigmilcom/a11y</a>
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <nav class="nav-links" aria-label="Page links">
+                    <a href="#how">Usage</a>
+                    <a href="#features">Features</a>
+                    <a href="#sample">Read</a>
+                    <a href="https://github.com/pigmilcom/a11y" class="nav-gh">GitHub &#x2197;</a>
+                </nav>
+                <!-- Theme toggle -->
+                <div class="theme-toggle" role="group" aria-label="Color theme">
+                    <button class="theme-btn" id="theme-system" data-theme-val="system" aria-pressed="false" title="System theme">
+                        <!-- monitor icon -->
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="2" width="14" height="10" rx="1.5"/><path d="M5 14h6M8 12v2"/></svg>
+                    </button>
+                    <button class="theme-btn" id="theme-light" data-theme-val="light" aria-pressed="false" title="Light theme">
+                        <!-- sun icon -->
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.22 3.22l1.06 1.06M11.72 11.72l1.06 1.06M3.22 12.78l1.06-1.06M11.72 4.28l1.06-1.06"/></svg>
+                    </button>
+                    <button class="theme-btn" id="theme-dark" data-theme-val="dark" aria-pressed="false" title="Dark theme">
+                        <!-- moon icon -->
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 10A5.5 5.5 0 0 1 6 2.5a5.5 5.5 0 1 0 7.5 7.5Z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="badge">
+            <span class="badge-dot anim-glow" aria-hidden="true"></span>
+            WCAG 2.1 Compliant
+        </div>
+        <h1>
+            Accessibility for
+            <span class="hero-gradient"> everyone</span>
+        </h1>
+        <p>
+            A drop-in widget that gives every visitor control over their reading experience &mdash;
+            text size, contrast, motion, dyslexia font, and more. No configuration required.
+        </p>
+        <div class="hero-actions">
+            <code class="hero-cmd">npm i @pigmilcom/a11y</code>
+            <a href="https://github.com/pigmilcom/a11y" class="hero-btn">View on GitHub &rarr;</a>
+        </div>
+        <div class="hero-anims">
+            <div class="anim-ring anim-spin" aria-hidden="true"></div>
+            <p class="anim-hint">
+                <strong>Animated elements</strong>
+                Toggle <em>Reduce Motion</em> &searr; to freeze instantly.
+            </p>
+            <div class="anim-box anim-float" aria-hidden="true"></div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="section">
+        <div class="wrap">
+            <p class="label" style="text-align:center;margin-bottom:1.25rem;">Three ways to integrate</p>
+            <div class="cards">
+
+                <div class="card card--accent">
+                    <span class="card-tag" style="color:#00e5a0;">jsDelivr CDN</span>
+                    <span class="card-sub" style="color:rgba(0,229,160,0.5);">recommended &mdash; global edge network</span>
+                    <pre><code>&lt;script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+&gt;&lt;/script&gt;</code></pre>
+                    <p class="card-note">Served via npm registry. Always the latest published version.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-tag" style="color:rgba(255,255,255,0.5);">Self-hosted</span>
+                    <span class="card-sub">pigmil CDN &mdash; pin your version</span>
+                    <pre><code>&lt;script
+  src="https://cdn.pigmil.com/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+&gt;&lt;/script&gt;</code></pre>
+                    <p class="card-note">Hosted endpoint you control. Ideal for pinned deployments.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-tag" style="color:rgba(255,255,255,0.5);">npm &mdash; React</span>
+                    <span class="card-sub">Next.js &middot; Vite &middot; CRA</span>
+                    <pre><code>import a11y from '@pigmilcom/a11y';
+import '@pigmilcom/a11y/styles';
+
+const A11y = a11y;
+&lt;A11y className="fixed bottom-5 right-5" /&gt;</code></pre>
+                    <p class="card-note">React stays a peer dep. Fully tree-shakeable ESM + CJS.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom style overrides -->
+    <section class="section">
+        <div class="wrap-md">
+            <p class="label" style="text-align:center;margin-bottom:1.25rem;">Override widget styles with a &lt;style&gt; tag</p>
+            <div class="card card--accent">
+                <span class="card-tag" style="color:#00e5a0;">CDN &amp; React &mdash; Custom CSS</span>
+                <span class="card-sub" style="color:rgba(0,229,160,0.5);">target stable <code>a11y-widget-*</code> class names</span>
+                <pre><code>&lt;style&gt;
+  /* Make the trigger button square instead of round */
+  .a11y-widget-btn {
+    border-radius: 8px !important;
+    background: rgba(30, 30, 60, 0.9) !important;
+  }
+
+  /* Tint the dialog border */
+  .a11y-widget-dialog {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+  }
+
+  /* Custom toggle row hover */
+  .a11y-widget-toggle-btn:hover {
+    background: rgba(99, 102, 241, 0.06) !important;
+  }
+&lt;/style&gt;</code></pre>
+                <p class="card-note">
+                    The widget exposes stable <code>a11y-widget-*</code> class names as a public API.
+                    Place your <code>&lt;style&gt;</code> tag after the widget script to override built-in styles.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature grid -->
+    <section id="features" class="section">
+        <div class="wrap">
+            <p class="label" style="text-align:center;margin-bottom:2rem;">Open the widget &searr; to try every feature live</p>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-bar" style="background:#00e5a0;"></div>
+                    <h3>Text Size</h3>
+                    <p>Scale the page font to 118&thinsp;% or 145&thinsp;%. Works on top of browser zoom for maximum flexibility.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#60a5fa;"></div>
+                    <h3>High Contrast</h3>
+                    <p>Applies a 1.6&times; CSS contrast filter &mdash; WCAG AA &amp; AAA targets met with one click.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#f472b6;"></div>
+                    <h3>Invert Colors</h3>
+                    <p>Flips the entire palette while re-inverting media so images stay natural.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#a78bfa;"></div>
+                    <h3>Reduce Motion</h3>
+                    <p>Strips every animation and transition &mdash; essential for vestibular and photosensitive users.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#fb923c;"></div>
+                    <h3>Highlight Links</h3>
+                    <p>Adds visible 2px outlines to every anchor and <code>role="link"</code> for link-discovery users.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#facc15;"></div>
+                    <h3>ADHD Friendly</h3>
+                    <p>Kills motion and adds a bold yellow focus ring so keyboard users always know where they are.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#34d399;"></div>
+                    <h3>Dyslexia Font</h3>
+                    <p>Switches to a high-readability system font stack with generous word and letter spacing.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#94a3b8;"></div>
+                    <h3>Text Spacing</h3>
+                    <p>Applies WCAG 1.4.12 spacing &mdash; letter-spacing, word-spacing, and line-height &mdash; page-wide.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-bar" style="background:#38bdf8;"></div>
+                    <h3>Persistent</h3>
+                    <p>Every preference saved to <code>localStorage</code>. No loss across navigation or page reloads.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sample reading content -->
+    <section id="sample" class="reading wrap-sm">
+        <div class="reading-header">
+            <h2>Sample reading content</h2>
+            <p>Enable <em>Text Size</em>, <em>Dyslexia Font</em>, or <em>Text Spacing</em> &mdash; changes apply in real time.</p>
+        </div>
+        <p>
+            Web accessibility ensures that websites are usable by as many people as possible, including
+            those with visual, auditory, motor, or cognitive disabilities. The
+            <a href="https://www.w3.org/WAI/standards-guidelines/wcag/">WCAG 2.1 guidelines</a>
+            provide a framework built on four core principles: Perceivable, Operable, Understandable, and Robust.
+        </p>
+        <p>
+            Over 1.3 billion people worldwide live with some form of disability. Inaccessible websites exclude
+            a significant share of your audience &mdash; and in many jurisdictions they carry
+            <a href="https://www.w3.org/WAI/policies/">legal consequences</a>.
+            Enabling accessibility features at the client layer is a zero-cost way to start closing that gap today.
+        </p>
+        <p>
+            This widget handles the most impactful preferences with zero server-side changes. Install once,
+            benefit all users &mdash; preferences persist across reloads via <code>localStorage</code>.
+        </p>
+        <p class="reading-footer">
+            MIT License &middot;
+            <a href="https://github.com/pigmilcom/a11y">github.com/pigmilcom/a11y</a>
+        </p>
+    </section>
+
+    <!-- Arrow hint — points to the widget button -->
+    <div id="a11y-hint" aria-hidden="true">
+        <span class="hint-label">Try it</span>
+        <div class="hint-arrow"></div>
+    </div>
+
+    <script>
+    (function () {
+        var STORAGE_KEY = 'pgm-theme';
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function applyTheme(pref) {
+            var dark = pref === 'dark' || (pref === 'system' && mq.matches);
+            if (dark) {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+            document.documentElement.setAttribute('data-theme-pref', pref);
+            // update button pressed states
+            document.querySelectorAll('.theme-btn').forEach(function (btn) {
+                btn.setAttribute('aria-pressed', String(btn.dataset.themeVal === pref));
+            });
+        }
+
+        function saveAndApply(pref) {
+            localStorage.setItem(STORAGE_KEY, pref);
+            applyTheme(pref);
+        }
+
+        // Wire up buttons
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                saveAndApply(btn.dataset.themeVal);
+            });
+        });
+
+        // Follow OS changes when set to system
+        mq.addEventListener('change', function () {
+            var pref = localStorage.getItem(STORAGE_KEY) || 'system';
+            if (pref === 'system') applyTheme('system');
+        });
+
+        // Apply initial state (restores saved pref or defaults to system)
+        var saved = localStorage.getItem(STORAGE_KEY) || 'system';
+        applyTheme(saved);
+    })();
+    </script>
+
+</body>
+</html>

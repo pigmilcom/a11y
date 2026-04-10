@@ -1,0 +1,66 @@
+{
+    "name": "@pigmilcom/a11y",
+    "version": "1.2.0",
+    "description": "WCAG 2.1 accessibility widget for React — text size, contrast, dyslexia font, motion reduction, and more.",
+    "keywords": [
+        "accessibility",
+        "wcag",
+        "wcag21",
+        "a11y",
+        "react",
+        "widget",
+        "aria"
+    ],
+    "author": "pigmilcom",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pigmilcom/a11y.git"
+    },
+    "homepage": "https://github.com/pigmilcom/a11y#readme",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        },
+        "./styles": "./dist/index.css"
+    },
+    "files": [
+        "dist",
+        "types",
+        "README.md",
+        "src/cdn.jsx"
+    ],
+    "sideEffects": false,
+    "browser": "./dist/a11y.cdn.js",
+    "scripts": {
+        "build:js": "tsup",
+        "build:js:min": "tsup --config tsup.min.config.mjs",
+        "build:css": "node scripts/build-css.js",
+        "build:css:min": "node scripts/build-css.js",
+        "build:license": "node scripts/build-license.js",
+        "build:cdn": "npm run build:css && tsup --config tsup.cdn.config.mjs",
+        "build:gh": "node scripts/build-gh.mjs",
+        "build": "npm run build:js && npm run build:js:min && npm run build:css && npm run build:css:min && npm run build:license && npm run build:cdn",
+        "dev": "tsup --watch",
+        "prepublishOnly": "npm run build"
+    },
+    "peerDependencies": {
+        "react": ">=17.0.0",
+        "react-dom": ">=17.0.0"
+    },
+    "devDependencies": {
+        "javascript-obfuscator": "^5.4.1",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "tsup": "^8.3.0",
+        "typescript": "^5.7.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
