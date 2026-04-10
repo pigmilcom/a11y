@@ -291,7 +291,7 @@ No dependencies. Works in any HTML page.
 
 MIT © [pigmilcom](https://pigmilcom.com)
 
-### Free tier
+### Free Usage
 
 The free version is available for any domain and includes:
 
