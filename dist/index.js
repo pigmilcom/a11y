@@ -153,16 +153,28 @@ var TOGGLES = [
     ] })
   }
 ];
-function A11y({ className }) {
+function A11y({ className, theme = "auto" }) {
   const [open, setOpen] = (0, import_react.useState)(false);
   const [prefs, setPrefs] = (0, import_react.useState)(DEFAULTS);
   const [mounted, setMounted] = (0, import_react.useState)(false);
   const [notice, setNotice] = (0, import_react.useState)(false);
   const [license, setLicense] = (0, import_react.useState)({ status: "checking", plan: "free" });
+  const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("dark");
   const triggerRef = (0, import_react.useRef)(null);
   (0, import_react.useEffect)(() => {
     setMounted(true);
   }, []);
+  (0, import_react.useEffect)(() => {
+    if (theme === "light" || theme === "dark") {
+      setResolvedTheme(theme);
+      return;
+    }
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    setResolvedTheme(mq.matches ? "light" : "dark");
+    const onChange = (e) => setResolvedTheme(e.matches ? "light" : "dark");
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [theme]);
   (0, import_react.useEffect)(() => {
     var _a;
     const fn = typeof window !== "undefined" ? (_a = window == null ? void 0 : window.PigmilLicense) == null ? void 0 : _a.validateLicense : null;
@@ -214,6 +226,7 @@ function A11y({ className }) {
         "aria-haspopup": "dialog",
         onClick: () => setOpen((v) => !v),
         className: `pgm-btn a11y-widget-btn${className ? ` ${className}` : ""}`,
+        "data-pgm-theme": resolvedTheme,
         children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-lg", fill: "none", stroke: "currentColor", strokeWidth: 1.8, "aria-hidden": "true", children: [
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "12", cy: "5", r: "1.5", fill: "currentColor", stroke: "none" }),
@@ -230,7 +243,8 @@ function A11y({ className }) {
           {
             className: "pgm-backdrop",
             onClick: () => setOpen(false),
-            "aria-hidden": "true"
+            "aria-hidden": "true",
+            "data-pgm-theme": resolvedTheme
           }
         ),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
@@ -240,6 +254,7 @@ function A11y({ className }) {
             "aria-modal": "true",
             "aria-label": "Accessibility settings",
             className: "pgm-dialog a11y-widget-dialog",
+            "data-pgm-theme": resolvedTheme,
             children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "pgm-header", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [

@@ -171,16 +171,33 @@ const TOGGLES = [
 ];
 
 // ── Widget ────────────────────────────────────────────────────────────────────
-export default function A11y({ className }) {
-    const [open, setOpen]       = useState(false);
-    const [prefs, setPrefs]     = useState(DEFAULTS);
-    const [mounted, setMounted] = useState(false);
-    const [notice, setNotice]   = useState(false);
-    const [license, setLicense] = useState({ status: 'checking', plan: 'free' });
-    const triggerRef            = useRef(null);
+// theme: 'auto' (default) | 'light' | 'dark'
+// 'auto' follows the OS/browser prefers-color-scheme and updates live.
+export default function A11y({ className, theme = 'auto' }) {
+    const [open, setOpen]           = useState(false);
+    const [prefs, setPrefs]         = useState(DEFAULTS);
+    const [mounted, setMounted]     = useState(false);
+    const [notice, setNotice]       = useState(false);
+    const [license, setLicense]     = useState({ status: 'checking', plan: 'free' });
+    const [resolvedTheme, setResolvedTheme] = useState('dark'); // SSR-safe default
+    const triggerRef                = useRef(null);
 
     // Mark mounted so portal renders only client-side
     useEffect(() => { setMounted(true); }, []);
+
+    // Resolve theme: explicit prop wins; 'auto' follows prefers-color-scheme.
+    useEffect(() => {
+        if (theme === 'light' || theme === 'dark') {
+            setResolvedTheme(theme);
+            return;
+        }
+        // 'auto' — read system preference and subscribe to changes
+        const mq = window.matchMedia('(prefers-color-scheme: light)');
+        setResolvedTheme(mq.matches ? 'light' : 'dark');
+        const onChange = (e) => setResolvedTheme(e.matches ? 'light' : 'dark');
+        mq.addEventListener('change', onChange);
+        return () => mq.removeEventListener('change', onChange);
+    }, [theme]);
 
     // Validate domain license — reads window.PigmilLicense loaded by cdn.jsx
     // (or host page). Fails-open for npm usage without a CDN pre-load so the
@@ -248,6 +265,7 @@ export default function A11y({ className }) {
                 aria-haspopup="dialog"
                 onClick={() => setOpen((v) => !v)}
                 className={`pgm-btn a11y-widget-btn${className ? ` ${className}` : ''}`}
+                data-pgm-theme={resolvedTheme}
             >
                 <svg viewBox="0 0 24 24" className="pgm-icon-lg" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
                     <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
@@ -266,6 +284,7 @@ export default function A11y({ className }) {
                         className="pgm-backdrop"
                         onClick={() => setOpen(false)}
                         aria-hidden="true"
+                        data-pgm-theme={resolvedTheme}
                     />
 
                     {/* Dialog — centered in viewport */}
@@ -274,6 +293,7 @@ export default function A11y({ className }) {
                         aria-modal="true"
                         aria-label="Accessibility settings"
                         className="pgm-dialog a11y-widget-dialog"
+                        data-pgm-theme={resolvedTheme}
                     >
                         {/* Header */}
                         <div className="pgm-header">

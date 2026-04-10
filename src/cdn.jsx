@@ -55,12 +55,13 @@ function mount() {
     // Inline styles win over any class-based CSS — no ordering conflicts.
     // line-height:0 / font-size:0 prevent inherited whitespace from adding
     // phantom height/width to the container div.
-    const pos = _script?.dataset?.position ?? 'bottom-right';
+    const pos   = _script?.dataset?.position ?? 'bottom-right';
+    const theme  = _script?.dataset?.theme ?? 'auto';
     const posCSS = POSITIONS[pos] ?? POSITIONS['bottom-right'];
     container.setAttribute('style', `position:fixed;z-index:9998;line-height:0;font-size:0;${posCSS}`);
     document.body.appendChild(container);
     _root = createRoot(container);
-    _root.render(<A11y />);
+    _root.render(<A11y theme={theme} />);
 }
 
 function unmount() {
