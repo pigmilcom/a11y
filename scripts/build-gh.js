@@ -7,10 +7,11 @@
  * Steps:
  *   1. Verify working tree is clean (no uncommitted changes)
  *   2. Read demo/index.html from the current branch
- *   3. Switch to gh-pages
- *   4. Write index.html, stage, commit (skip if nothing changed)
- *   5. Push origin gh-pages
- *   6. Return to original branch
+ *   3. Ensure gh-pages branch exists (local → remote → create orphan)
+ *   4. Switch to gh-pages
+ *   5. Write index.html, stage, commit (skip if nothing changed)
+ *   6. Push origin gh-pages
+ *   7. Return to original branch
  *
  * Usage:
  *   node scripts/build-gh.js
@@ -34,6 +35,10 @@ function log(msg) {
     process.stdout.write(`[build-gh] ${msg}\n`);
 }
 
+function tryRun(cmd, opts = {}) {
+    try { return run(cmd, opts); } catch { return null; }
+}
+
 // ── 1. Guard: must have a clean working tree ─────────────────────────────────
 const dirty = run('git status --porcelain');
 if (dirty) {
@@ -53,9 +58,21 @@ const html = readFileSync(srcPath, 'utf8');
 // ── 3. Read version from package.json ────────────────────────────────────────
 const { version } = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 
-// ── 4. Switch to gh-pages ─────────────────────────────────────────────────────
-log('Switching to gh-pages…');
-run('git checkout gh-pages');
+// ── 4. Ensure gh-pages branch exists and switch to it ──────────────────────
+const localBranch  = tryRun('git show-ref --verify refs/heads/gh-pages');
+const remoteBranch = tryRun('git ls-remote --heads origin gh-pages');
+
+if (localBranch) {
+    log('Switching to existing local gh-pages…');
+    run('git checkout gh-pages');
+} else if (remoteBranch) {
+    log('Creating local gh-pages tracking origin/gh-pages…');
+    run('git checkout -b gh-pages origin/gh-pages');
+} else {
+    log('gh-pages not found — creating orphan branch…');
+    run('git checkout --orphan gh-pages');
+    tryRun('git rm -rf .');
+}
 
 try {
     // ── 5. Write index.html ───────────────────────────────────────────────────
