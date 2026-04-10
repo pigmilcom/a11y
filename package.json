@@ -1,6 +1,6 @@
 {
     "name": "@pigmilcom/a11y",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "WCAG 2.1 accessibility widget for React — text size, contrast, dyslexia font, motion reduction, and more.",
     "keywords": [
         "accessibility",
@@ -33,6 +33,8 @@
         "dist",
         "types",
         "README.md",
+        "CHANGELOG.md",
+        "LICENSE",
         "src/cdn.jsx"
     ],
     "sideEffects": false,

@@ -51,6 +51,37 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
 | `top-right`     | Top-right corner   |
 | `top-left`      | Top-left corner    |
 
+### `data-theme` values
+
+| Value    | Behaviour                                              |
+| -------- | ------------------------------------------------------ |
+| `auto`   | Follows OS/browser `prefers-color-scheme` (default)    |
+| `light`  | Always use the light theme                             |
+| `dark`   | Always use the dark theme                              |
+
+```html
+<!-- Auto (default) — updates live when the OS switches -->
+<script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+  data-theme="auto"
+></script>
+
+<!-- Force light theme -->
+<script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+  data-theme="light"
+></script>
+
+<!-- Force dark theme -->
+<script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+  data-theme="dark"
+></script>
+```
+
 ### Programmatic control
 
 The CDN build exposes `window.PigmilA11y` for manual control:
@@ -237,9 +268,32 @@ export default function App() {
 
 ## Props
 
-| Prop        | Type     | Default | Description                                 |
-| ----------- | -------- | ------- | ------------------------------------------- |
-| `className` | `string` | —       | Extra classes added to the trigger `<button>` |
+| Prop        | Type     | Default  | Description                                          |
+| ----------- | -------- | -------- | ---------------------------------------------------- |
+| `className` | `string` | —        | Extra classes added to the trigger `<button>`        |
+| `theme`     | `string` | `'auto'` | Widget colour theme: `'auto'` \| `'light'` \| `'dark'` |
+
+### `theme` prop
+
+| Value    | Behaviour                                                        |
+| -------- | ---------------------------------------------------------------- |
+| `'auto'` | Reads `prefers-color-scheme` and updates live when the OS changes |
+| `'light'`| Always renders the light theme                                   |
+| `'dark'` | Always renders the dark theme                                    |
+
+```jsx
+import a11y from '@pigmilcom/a11y';
+const A11y = a11y;
+
+// Follow the OS preference (default)
+<A11y className="fixed bottom-4 right-4" theme="auto" />
+
+// Always light
+<A11y className="fixed bottom-4 right-4" theme="light" />
+
+// Always dark
+<A11y className="fixed bottom-4 right-4" theme="dark" />
+```
 
 ---
 
