@@ -13,6 +13,7 @@ It allows users to customize their experience by modifying text size, contrast, 
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { getMessages, isRtlLanguage, normalizeLanguage } from './i18n/index.js';
 
 // ── Storage key ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'pgm-a11y';
@@ -90,14 +91,21 @@ function save(prefs) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch {}
 }
 
-// ── Option rows config ────────────────────────────────────────────────────────
-const TEXT_LABELS = ['Normal', 'Large', 'X-Large'];
+function renderBrandNotice(template, brandNode) {
+    const [before, after = ''] = template.split('{brand}');
+    return (
+        <>
+            {before}
+            {brandNode}
+            {after}
+        </>
+    );
+}
 
+// ── Option rows config ────────────────────────────────────────────────────────
 const TOGGLES = [
     {
         key: 'highContrast',
-        label: 'High Contrast',
-        desc: 'Increase colour contrast for readability',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
@@ -108,8 +116,6 @@ const TOGGLES = [
     },
     {
         key: 'invertColors',
-        label: 'Invert Colors',
-        desc: 'Invert all page colours',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path d="M12 3v18M3 12h18" />
@@ -119,8 +125,6 @@ const TOGGLES = [
     },
     {
         key: 'grayscale',
-        label: 'Grayscale',
-        desc: 'Remove all colour from the page',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -130,8 +134,6 @@ const TOGGLES = [
     },
     {
         key: 'reduceMotion',
-        label: 'Reduce Motion',
-        desc: 'Stop animations and transitions',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path d="M5 12h14M12 5l-7 7 7 7" />
@@ -140,8 +142,6 @@ const TOGGLES = [
     },
     {
         key: 'highlightLinks',
-        label: 'Highlight Links',
-        desc: 'Make all links visible at a glance',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -151,8 +151,6 @@ const TOGGLES = [
     },
     {
         key: 'textSpacing',
-        label: 'Text Spacing',
-        desc: 'Increase letter, word & line spacing',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -161,8 +159,6 @@ const TOGGLES = [
     },
     {
         key: 'dyslexia',
-        label: 'Dyslexia Font',
-        desc: 'Switch to a high-readability typeface',
         icon: (
             <svg viewBox="0 0 24 24" className="pgm-icon" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path d="M4 7V4h16v3" />
@@ -176,7 +172,7 @@ const TOGGLES = [
 // ── Widget ────────────────────────────────────────────────────────────────────
 // theme: null | 'auto' | 'light' | 'dark'
 // null / 'auto' infer from the page's <html> theme, otherwise default to light.
-export default function A11y({ className, theme = null }) {
+export default function A11y({ className, theme = null, lang = 'en' }) {
     const [open, setOpen]           = useState(false);
     const [prefs, setPrefs]         = useState(DEFAULTS);
     const [mounted, setMounted]     = useState(false);
@@ -185,8 +181,14 @@ export default function A11y({ className, theme = null }) {
     const [pageTheme, setPageTheme] = useState('light');
     const [resolvedTheme, setResolvedTheme] = useState('light');
     const triggerRef                = useRef(null);
+    const wasOpenRef                = useRef(false);
     const explicitTheme             = normalizeTheme(theme);
+    const resolvedLanguage          = normalizeLanguage(lang);
+    const messages                  = getMessages(resolvedLanguage);
+    const direction                 = isRtlLanguage(resolvedLanguage) ? 'rtl' : 'ltr';
     const triggerTheme              = className ? null : (explicitTheme ?? pageTheme);
+    const textSizeLabels            = messages.textSize.options;
+    const closeDialog               = () => setOpen(false);
 
     // Mark mounted so portal renders only client-side
     useEffect(() => {
@@ -242,9 +244,17 @@ export default function A11y({ className, theme = null }) {
     // Close on Escape
     useEffect(() => {
         if (!open) return;
-        const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+        const onKey = (e) => { if (e.key === 'Escape') closeDialog(); };
         document.addEventListener('keydown', onKey);
         return () => document.removeEventListener('keydown', onKey);
+    }, [open]);
+
+    useEffect(() => {
+        if (wasOpenRef.current && !open) {
+            triggerRef.current?.focus();
+        }
+
+        wasOpenRef.current = open;
     }, [open]);
 
     // Block rendering: silent while validating, and on quota/unreachable errors
@@ -279,12 +289,13 @@ export default function A11y({ className, theme = null }) {
             <button
                 ref={triggerRef}
                 type="button"
-                aria-label="Accessibility options"
+                aria-label={messages.aria.triggerLabel}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 onClick={() => setOpen((v) => !v)}
                 className={`pgm-btn a11y-widget-btn${className ? ` ${className}` : ''}`}
                 data-pgm-theme={triggerTheme}
+                lang={resolvedLanguage}
             >
                 <svg viewBox="0 0 24 24" className="pgm-icon-lg" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
                     <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
@@ -301,7 +312,7 @@ export default function A11y({ className, theme = null }) {
                     {/* Backdrop — click closes the dialog */}
                     <div
                         className="pgm-backdrop"
-                        onClick={() => setOpen(false)}
+                        onClick={closeDialog}
                         aria-hidden="true"
                         data-pgm-theme={resolvedTheme}
                     />
@@ -310,24 +321,26 @@ export default function A11y({ className, theme = null }) {
                     <div
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Accessibility settings"
+                        aria-label={messages.aria.dialogLabel}
                         className="pgm-dialog a11y-widget-dialog"
                         data-pgm-theme={resolvedTheme}
+                        dir={direction}
+                        lang={resolvedLanguage}
                     >
                         {/* Header */}
                         <div className="pgm-header">
                             <div>
                                 <p className="pgm-header-title">
-                                    Accessibility
+                                    {messages.header.title}
                                 </p>
                                 <p className="pgm-header-subtitle">
-                                    WCAG 2.1 · Personalise your experience
+                                    {messages.header.subtitle}
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                aria-label="Close accessibility panel"
-                                onClick={() => setOpen(false)}
+                                aria-label={messages.aria.closeLabel}
+                                onClick={closeDialog}
                                 className="pgm-close-btn"
                             >
                                 <svg viewBox="0 0 24 24" className="pgm-icon-sm" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -340,14 +353,14 @@ export default function A11y({ className, theme = null }) {
                         <div className="pgm-size-section">
                             <div className="pgm-size-header">
                                 <span className="pgm-size-label">
-                                    Text Size
+                                    {messages.textSize.label}
                                 </span>
                                 <span className="pgm-size-value">
-                                    {TEXT_LABELS[prefs.textSize]}
+                                    {textSizeLabels[prefs.textSize]}
                                 </span>
                             </div>
                             <div className="pgm-size-btns">
-                                {TEXT_LABELS.map((lbl, i) => (
+                                {textSizeLabels.map((lbl, i) => (
                                     <button
                                         key={lbl}
                                         type="button"
@@ -363,8 +376,9 @@ export default function A11y({ className, theme = null }) {
 
                         {/* Toggle options */}
                         <div className="pgm-toggle-list">
-                            {TOGGLES.map(({ key, label, desc, icon }) => {
+                            {TOGGLES.map(({ key, icon }) => {
                                 const on = prefs[key];
+                                const toggleCopy = messages.toggles[key];
                                 return (
                                     <button
                                         key={key}
@@ -379,10 +393,10 @@ export default function A11y({ className, theme = null }) {
                                         </span>
                                         <span className="pgm-toggle-text">
                                             <span className={`pgm-toggle-label${on ? ' pgm-toggle-label--on' : ''}`}>
-                                                {label}
+                                                {toggleCopy.label}
                                             </span>
                                             <span className="pgm-toggle-desc">
-                                                {desc}
+                                                {toggleCopy.desc}
                                             </span>
                                         </span>
                                         {/* Pill toggle */}
@@ -414,7 +428,7 @@ export default function A11y({ className, theme = null }) {
                                         alt="Pigmil"
                                         className="pgm-notice-logo"
                                     />
-                                    <span>About this widget</span>
+                                        <span>{messages.footer.about}</span>
                                     <svg viewBox="0 0 24 24" className="pgm-notice-chevron" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true" style={{ transform: notice ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                                         <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
@@ -426,7 +440,7 @@ export default function A11y({ className, theme = null }) {
                                 disabled={!isModified}
                                 className="pgm-reset-btn"
                             >
-                                Reset all
+                                {messages.footer.reset}
                             </button>
                         </div>
 
@@ -434,19 +448,17 @@ export default function A11y({ className, theme = null }) {
                         {!isPro && notice && (
                             <div id="pgm-notice" className="pgm-notice">
                                 <p className="pgm-notice-text">
-                                    This accessibility widget is provided free of charge
-                                    by{' '}
-                                    <a
-                                        href="https://github.com/pigmilcom/a11y"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="pgm-notice-link"
-                                    >
-                                        PIGMIL
-                                    </a>
-                                    {' '}as an open-source tool to help make the web more
-                                    accessible. It stores your preferences locally in your
-                                    browser and sends no data to any server.
+                                    {renderBrandNotice(
+                                        messages.notice.body,
+                                        <a
+                                            href="https://github.com/pigmilcom/a11y"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="pgm-notice-link"
+                                        >
+                                            PIGMIL
+                                        </a>
+                                    )}
                                 </p>
                                 <a
                                     href="https://github.com/pigmilcom/a11y"
@@ -457,7 +469,7 @@ export default function A11y({ className, theme = null }) {
                                     <svg viewBox="0 0 24 24" className="pgm-icon-sm" fill="currentColor" aria-hidden="true">
                                         <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
                                     </svg>
-                                    View on GitHub
+                                    {messages.footer.github}
                                 </a>
                             </div>
                         )}

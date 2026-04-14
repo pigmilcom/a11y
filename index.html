@@ -17,7 +17,7 @@
         jsDelivr (recommended): https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.1.1/dist/a11y.cdn.js
         Self-hosted:            https://cdn.pigmil.com/a11y/dist/a11y.cdn.js
     -->
-    <script id="pgm-a11y-script" src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right"></script>
+    <script id="pgm-a11y-script" src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right" data-lang="en"></script>
 
     <!-- Theme init: apply saved preference before first paint to avoid flash -->
     <script>
@@ -210,6 +210,15 @@
         color: #021a11;
     }
     .theme-btn svg { width: 0.75rem; height: 0.75rem; flex-shrink: 0; }
+    .lang-select {
+        height: 1.625rem;
+        border-radius: 9999px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-link-h);
+        padding: 0 0.75rem;
+        font-size: 0.68rem;
+    }
 
     /* ==========================================================
        BADGE
@@ -458,6 +467,17 @@
                         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 10A5.5 5.5 0 0 1 6 2.5a5.5 5.5 0 1 0 7.5 7.5Z"/></svg>
                     </button>
                 </div>
+                <label class="label" for="lang-picker" style="margin:0;color:var(--text-link);">Widget language</label>
+                <select id="lang-picker" class="lang-select" aria-label="Widget language">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="zh">Chinese</option>
+                    <option value="ar">Arabic</option>
+                    <option value="hi">Hindi</option>
+                </select>
             </div>
         </div>
     </nav>
@@ -502,6 +522,7 @@
                     <pre><code>&lt;script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="en"
 &gt;&lt;/script&gt;</code></pre>
                     <p class="card-note">Served via npm registry. Always the latest published version.</p>
                 </div>
@@ -512,6 +533,7 @@
                     <pre><code>&lt;script
   src="https://cdn.pigmil.com/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="es"
 &gt;&lt;/script&gt;</code></pre>
                     <p class="card-note">Hosted endpoint you control. Ideal for pinned deployments.</p>
                 </div>
@@ -523,7 +545,7 @@
 import '@pigmilcom/a11y/styles';
 
 const A11y = a11y;
-&lt;A11y className="fixed bottom-5 right-5" /&gt;</code></pre>
+&lt;A11y className="fixed bottom-5 right-5" lang="fr" /&gt;</code></pre>
                     <p class="card-note">React stays a peer dep. Fully tree-shakeable ESM + CJS.</p>
                 </div>
 
@@ -656,13 +678,11 @@ const A11y = a11y;
         var STORAGE_KEY = 'pgm-theme';
         var mq = window.matchMedia('(prefers-color-scheme: dark)');
         var a11yScript = document.getElementById('pgm-a11y-script');
+        var langPicker = document.getElementById('lang-picker');
 
         function syncA11yTheme(theme) {
             if (!a11yScript) return;
             a11yScript.dataset.theme = theme;
-            if (!window.PigmilA11y) return;
-            window.PigmilA11y.unmount();
-            window.PigmilA11y.mount();
         }
 
         function applyTheme(pref) {
@@ -685,12 +705,24 @@ const A11y = a11y;
             applyTheme(pref);
         }
 
+        function syncA11yLanguage(lang) {
+            if (!a11yScript) return;
+            a11yScript.dataset.lang = lang;
+        }
+
         // Wire up buttons
         document.querySelectorAll('.theme-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 saveAndApply(btn.dataset.themeVal);
             });
         });
+
+        if (langPicker && a11yScript) {
+            langPicker.value = a11yScript.dataset.lang || 'en';
+            langPicker.addEventListener('change', function () {
+                syncA11yLanguage(langPicker.value);
+            });
+        }
 
         // Follow OS changes when set to system
         mq.addEventListener('change', function () {

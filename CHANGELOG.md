@@ -7,10 +7,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.3] - [1.2.6] - 2026-04-14
+## [1.2.3] - [1.2.7] - 2026-04-14
 
 ### Changed
-- Removed ADHD feature and references
+- Add Multi-language (8 translations - en, es, fr, de, pt, zh, ar, hi)
 - Fix widget theme mode
 - Small bug fixes
 

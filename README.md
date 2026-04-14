@@ -17,6 +17,7 @@ Served from the npm registry via jsDelivr's global edge network — always the l
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="en"
 ></script>
 ```
 
@@ -26,6 +27,7 @@ Pin to a specific version:
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.0.1/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="en"
 ></script>
 ```
 
@@ -37,6 +39,7 @@ Use your own CDN endpoint for full control over deployment:
 <script
   src="https://cdn.pigmil.com/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="en"
 ></script>
 ```
 
@@ -59,11 +62,28 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
 | `light`  | Always use the light theme                             |
 | `dark`   | Always use the dark theme                              |
 
+### `data-lang` values
+
+| Value | Language |
+| ----- | -------- |
+| `en`  | English (default) |
+| `es`  | Spanish |
+| `fr`  | French |
+| `de`  | German |
+| `pt`  | Portuguese |
+| `zh`  | Chinese (Simplified) |
+| `ar`  | Arabic |
+| `hi`  | Hindi |
+
+The CDN build reacts to live `data-lang` updates after mount, so changing the
+script tag from JavaScript updates the widget copy without a full page reload.
+
 ```html
-<!-- Default — follows the page's html theme and falls back to light -->
+<!-- Default — English UI, follows the page's html theme and falls back to light -->
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
+  data-lang="en"
 ></script>
 
 <!-- Equivalent explicit auto mode -->
@@ -71,6 +91,7 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="auto"
+  data-lang="en"
 ></script>
 
 <!-- Force light theme -->
@@ -78,6 +99,7 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="light"
+  data-lang="en"
 ></script>
 
 <!-- Force dark theme -->
@@ -85,7 +107,20 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="dark"
+  data-lang="en"
 ></script>
+
+<!-- Spanish UI -->
+<script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+  data-lang="es"
+></script>
+```
+
+```js
+const script = document.getElementById('pgm-a11y-script');
+script.dataset.lang = 'fr';
 ```
 
 ### Programmatic control
@@ -163,11 +198,12 @@ import a11y from '@pigmilcom/a11y';
 // Assign to a capitalized variable to use in JSX
 const A11y = a11y;
 
-<A11y className="fixed bottom-4 right-4 rounded" />
+<A11y className="fixed bottom-4 right-4 rounded" lang="en" />
 ```
 
 The `className` prop is merged onto the trigger button — use Tailwind classes,
-custom classes, or anything your bundler supports to position the widget.
+custom classes, or anything your bundler supports to position the widget. The
+`lang` prop is reactive, so updating it re-renders the widget in the new locale.
 
 ---
 
@@ -218,7 +254,7 @@ import a11y from '@pigmilcom/a11y';
 const A11y = a11y;
 
 // Tailwind classes are passed straight through to the trigger button
-<A11y className="fixed bottom-6 right-6 rounded-full shadow-xl" />
+<A11y className="fixed bottom-6 right-6 rounded-full shadow-xl" lang="de" />
 ```
 
 Because the classes come from *your* source files, Tailwind's JIT scanner
@@ -242,7 +278,7 @@ export default function RootLayout({ children }) {
         <html lang="en">
             <body>
                 {children}
-                <A11y className="fixed bottom-4 right-4 rounded" />
+                <A11y className="fixed bottom-4 right-4 rounded" lang="en" />
             </body>
         </html>
     );
@@ -263,7 +299,7 @@ export default function App() {
     return (
         <>
             {/* …your content… */}
-            <A11y className="fixed bottom-4 right-4 rounded" />
+            <A11y className="fixed bottom-4 right-4 rounded" lang="pt" />
         </>
     );
 }
@@ -277,6 +313,7 @@ export default function App() {
 | ----------- | -------- | -------- | ---------------------------------------------------- |
 | `className` | `string` | —        | Extra classes added to the trigger `<button>`        |
 | `theme`     | `string` | inferred | Widget colour theme: `'auto'` \| `'light'` \| `'dark'` |
+| `lang`      | `string` | `'en'`   | Widget UI language: `'en'`, `'es'`, `'fr'`, `'de'`, `'pt'`, `'zh'`, `'ar'`, `'hi'` |
 
 ### `theme` prop
 
@@ -301,6 +338,9 @@ const A11y = a11y;
 
 // Always dark
 <A11y className="fixed bottom-4 right-4" theme="dark" />
+
+// Change the widget UI language
+<A11y className="fixed bottom-4 right-4" lang="zh" />
 ```
 
 ---

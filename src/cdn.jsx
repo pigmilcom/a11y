@@ -24,6 +24,7 @@ import css from './a11y-css.js';
 
 // ── Capture currentScript synchronously (only valid during initial execution) ─
 const _script = document.currentScript;
+let _attributeObserver = null;
 
 // ── Position map — inline CSS applied to the container ────────────────────────
 // env(safe-area-inset-*) ensures the button clears notches/home-bar on iOS/Android.
@@ -44,6 +45,46 @@ function injectStyles() {
     document.head.appendChild(el);
 }
 
+function getScriptConfig() {
+    return {
+        position: _script?.dataset?.position ?? 'bottom-right',
+        theme: _script?.dataset?.theme ?? null,
+        lang: _script?.dataset?.lang ?? 'en',
+    };
+}
+
+function applyContainerPosition(container, position) {
+    const posCSS = POSITIONS[position] ?? POSITIONS['bottom-right'];
+    container.setAttribute('style', `position:fixed;z-index:9998;line-height:0;font-size:0;${posCSS}`);
+}
+
+function renderWidget() {
+    if (!_root) return;
+    const { theme, lang } = getScriptConfig();
+    _root.render(<A11y theme={theme} lang={lang} />);
+}
+
+function watchScriptAttributes(container) {
+    if (!_script || _attributeObserver) return;
+
+    _attributeObserver = new MutationObserver((mutations) => {
+        const changedAttributes = new Set(mutations.map((mutation) => mutation.attributeName));
+
+        if (changedAttributes.has('data-position')) {
+            applyContainerPosition(container, getScriptConfig().position);
+        }
+
+        if (changedAttributes.has('data-theme') || changedAttributes.has('data-lang')) {
+            renderWidget();
+        }
+    });
+
+    _attributeObserver.observe(_script, {
+        attributes: true,
+        attributeFilter: ['data-position', 'data-theme', 'data-lang'],
+    });
+}
+
 // ── Mount — idempotent, runs once ─────────────────────────────────────────────
 let _root = null;
 
@@ -55,16 +96,16 @@ function mount() {
     // Inline styles win over any class-based CSS — no ordering conflicts.
     // line-height:0 / font-size:0 prevent inherited whitespace from adding
     // phantom height/width to the container div.
-    const pos   = _script?.dataset?.position ?? 'bottom-right';
-    const theme  = _script?.dataset?.theme ?? null;
-    const posCSS = POSITIONS[pos] ?? POSITIONS['bottom-right'];
-    container.setAttribute('style', `position:fixed;z-index:9998;line-height:0;font-size:0;${posCSS}`);
+    applyContainerPosition(container, getScriptConfig().position);
     document.body.appendChild(container);
     _root = createRoot(container);
-    _root.render(<A11y theme={theme} />);
+    renderWidget();
+    watchScriptAttributes(container);
 }
 
 function unmount() {
+    _attributeObserver?.disconnect();
+    _attributeObserver = null;
     _root?.unmount();
     document.getElementById('pgm-a11y-root')?.remove();
     document.getElementById('pgm-a11y-styles')?.remove();
