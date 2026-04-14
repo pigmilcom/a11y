@@ -446,17 +446,13 @@ html.a11y-dyslexia * {\r
 [data-pgm-theme="light"]:where(.pgm-btn) {\r
     border-color: rgba(0,0,0,0.1);\r
     background:   rgba(255,255,255,0.95);\r
-    color:        rgba(0,0,0,0.45);\r
-    box-shadow:   0 4px 12px rgba(0,0,0,0.08);\r
+    color:        rgba(0,0,0,0.45); \r
 }\r
 [data-pgm-theme="light"]:where(.pgm-btn):hover {\r
     border-color: rgba(0,180,120,0.5);\r
     background:   rgba(0,180,120,0.07);\r
     color:        #009e70;\r
-}\r
-[data-pgm-theme="light"]:where(.pgm-btn):focus-visible {\r
-    box-shadow: 0 0 0 2px #009e70;\r
-}\r
+} \r
 \r
 /* Dialog */\r
 [data-pgm-theme="light"].pgm-dialog {\r
@@ -495,8 +491,7 @@ html.a11y-dyslexia * {\r
 [data-pgm-theme="light"] .pgm-size-btn--inactive:hover {\r
     border-color: rgba(0,0,0,0.25);\r
     color: rgba(0,0,0,0.65);\r
-}\r
-[data-pgm-theme="light"] .pgm-size-btn:focus-visible { box-shadow: 0 0 0 2px #009e70; }\r
+} \r
 \r
 /* Toggle list scrollbar */\r
 [data-pgm-theme="light"] .pgm-toggle-list {\r
@@ -512,7 +507,6 @@ html.a11y-dyslexia * {\r
 /* Toggle buttons */\r
 [data-pgm-theme="light"] .pgm-toggle-btn:hover       { background: rgba(0,0,0,0.03); }\r
 [data-pgm-theme="light"] .pgm-toggle-btn--on          { background: rgba(0,158,112,0.05); }\r
-[data-pgm-theme="light"] .pgm-toggle-btn:focus-visible { box-shadow: inset 0 0 0 2px #009e70; }\r
 \r
 /* Toggle icon */\r
 [data-pgm-theme="light"] .pgm-toggle-icon { color: rgba(0,0,0,0.28); }\r

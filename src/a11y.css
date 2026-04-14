@@ -439,17 +439,13 @@ html.a11y-dyslexia * {
 [data-pgm-theme="light"]:where(.pgm-btn) {
     border-color: rgba(0,0,0,0.1);
     background:   rgba(255,255,255,0.95);
-    color:        rgba(0,0,0,0.45);
-    box-shadow:   0 4px 12px rgba(0,0,0,0.08);
+    color:        rgba(0,0,0,0.45); 
 }
 [data-pgm-theme="light"]:where(.pgm-btn):hover {
     border-color: rgba(0,180,120,0.5);
     background:   rgba(0,180,120,0.07);
     color:        #009e70;
-}
-[data-pgm-theme="light"]:where(.pgm-btn):focus-visible {
-    box-shadow: 0 0 0 2px #009e70;
-}
+} 
 
 /* Dialog */
 [data-pgm-theme="light"].pgm-dialog {
@@ -488,8 +484,7 @@ html.a11y-dyslexia * {
 [data-pgm-theme="light"] .pgm-size-btn--inactive:hover {
     border-color: rgba(0,0,0,0.25);
     color: rgba(0,0,0,0.65);
-}
-[data-pgm-theme="light"] .pgm-size-btn:focus-visible { box-shadow: 0 0 0 2px #009e70; }
+} 
 
 /* Toggle list scrollbar */
 [data-pgm-theme="light"] .pgm-toggle-list {
@@ -505,7 +500,6 @@ html.a11y-dyslexia * {
 /* Toggle buttons */
 [data-pgm-theme="light"] .pgm-toggle-btn:hover       { background: rgba(0,0,0,0.03); }
 [data-pgm-theme="light"] .pgm-toggle-btn--on          { background: rgba(0,158,112,0.05); }
-[data-pgm-theme="light"] .pgm-toggle-btn:focus-visible { box-shadow: inset 0 0 0 2px #009e70; }
 
 /* Toggle icon */
 [data-pgm-theme="light"] .pgm-toggle-icon { color: rgba(0,0,0,0.28); }

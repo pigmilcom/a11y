@@ -17,7 +17,7 @@
         jsDelivr (recommended): https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.1.1/dist/a11y.cdn.js
         Self-hosted:            https://cdn.pigmil.com/a11y/dist/a11y.cdn.js
     -->
-    <script src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right"></script>
+    <script id="pgm-a11y-script" src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right"></script>
 
     <!-- Theme init: apply saved preference before first paint to avoid flash -->
     <script>
@@ -655,6 +655,15 @@ const A11y = a11y;
     (function () {
         var STORAGE_KEY = 'pgm-theme';
         var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        var a11yScript = document.getElementById('pgm-a11y-script');
+
+        function syncA11yTheme(theme) {
+            if (!a11yScript) return;
+            a11yScript.dataset.theme = theme;
+            if (!window.PigmilA11y) return;
+            window.PigmilA11y.unmount();
+            window.PigmilA11y.mount();
+        }
 
         function applyTheme(pref) {
             var dark = pref === 'dark' || (pref === 'system' && mq.matches);
@@ -668,6 +677,7 @@ const A11y = a11y;
             document.querySelectorAll('.theme-btn').forEach(function (btn) {
                 btn.setAttribute('aria-pressed', String(btn.dataset.themeVal === pref));
             });
+            syncA11yTheme(dark ? 'dark' : 'light');
         }
 
         function saveAndApply(pref) {
