@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 var STORAGE_KEY = "pgm-a11y";
-var THEME_STORAGE_KEY = "pgm-a11y-theme";
 function normalizeTheme(value) {
   if (value === "light" || value === "dark") return value;
   return null;
@@ -65,19 +64,6 @@ function load() {
 function save(prefs) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  } catch {
-  }
-}
-function loadThemeOverride() {
-  try {
-    return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
-  } catch {
-    return null;
-  }
-}
-function saveThemeOverride(theme) {
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
   }
 }
@@ -150,19 +136,12 @@ function A11y({ className, theme = null }) {
   const [notice, setNotice] = useState(false);
   const [license, setLicense] = useState({ status: "checking", plan: "free" });
   const [pageTheme, setPageTheme] = useState("light");
-  const [themeOverride, setThemeOverride] = useState(null);
   const [resolvedTheme, setResolvedTheme] = useState("light");
   const triggerRef = useRef(null);
   const explicitTheme = normalizeTheme(theme);
   const triggerTheme = className ? null : explicitTheme ?? pageTheme;
-  const isDarkTheme = resolvedTheme === "dark";
   useEffect(() => {
     setMounted(true);
-    const storedTheme = loadThemeOverride();
-    if (storedTheme) {
-      setThemeOverride(storedTheme);
-      setResolvedTheme(storedTheme);
-    }
   }, []);
   useEffect(() => {
     if (explicitTheme) {
@@ -179,12 +158,8 @@ function A11y({ className, theme = null }) {
     return () => observer.disconnect();
   }, [explicitTheme]);
   useEffect(() => {
-    if (themeOverride) {
-      setResolvedTheme(themeOverride);
-      return;
-    }
     setResolvedTheme(explicitTheme ?? pageTheme);
-  }, [explicitTheme, pageTheme, themeOverride]);
+  }, [explicitTheme, pageTheme]);
   useEffect(() => {
     var _a;
     const fn = typeof window !== "undefined" ? (_a = window == null ? void 0 : window.PigmilLicense) == null ? void 0 : _a.validateLicense : null;
@@ -223,12 +198,6 @@ function A11y({ className, theme = null }) {
     setPrefs(DEFAULTS);
     applyPrefs(DEFAULTS);
     save(DEFAULTS);
-  };
-  const toggleWidgetTheme = () => {
-    const nextTheme = isDarkTheme ? "light" : "dark";
-    setThemeOverride(nextTheme);
-    setResolvedTheme(nextTheme);
-    saveThemeOverride(nextTheme);
   };
   const isModified = JSON.stringify(prefs) !== JSON.stringify(DEFAULTS);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -277,33 +246,16 @@ function A11y({ className, theme = null }) {
                   /* @__PURE__ */ jsx("p", { className: "pgm-header-title", children: "Accessibility" }),
                   /* @__PURE__ */ jsx("p", { className: "pgm-header-subtitle", children: "WCAG 2.1 \xB7 Personalise your experience" })
                 ] }),
-                /* @__PURE__ */ jsxs("div", { className: "pgm-header-actions", children: [
-                  /* @__PURE__ */ jsx(
-                    "button",
-                    {
-                      type: "button",
-                      role: "switch",
-                      "aria-checked": isDarkTheme,
-                      "aria-label": `Use ${isDarkTheme ? "light" : "dark"} widget theme`,
-                      onClick: toggleWidgetTheme,
-                      className: `pgm-theme-switch${isDarkTheme ? " pgm-theme-switch--dark" : ""}`,
-                      children: /* @__PURE__ */ jsx("span", { className: "pgm-theme-switch-track", "aria-hidden": "true", children: /* @__PURE__ */ jsx("span", { className: "pgm-theme-switch-knob", children: isDarkTheme ? /* @__PURE__ */ jsx("svg", { viewBox: "0 0 24 24", className: "pgm-icon-xs", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ jsx("path", { d: "M20 15.5A7.5 7.5 0 0 1 8.5 4 9 9 0 1 0 20 15.5Z", strokeLinecap: "round", strokeLinejoin: "round" }) }) : /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 24 24", className: "pgm-icon-xs", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: [
-                        /* @__PURE__ */ jsx("circle", { cx: "12", cy: "12", r: "4" }),
-                        /* @__PURE__ */ jsx("path", { d: "M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07 6.7 17.3M17.3 6.7l1.77-1.77", strokeLinecap: "round" })
-                      ] }) }) })
-                    }
-                  ),
-                  /* @__PURE__ */ jsx(
-                    "button",
-                    {
-                      type: "button",
-                      "aria-label": "Close accessibility panel",
-                      onClick: () => setOpen(false),
-                      className: "pgm-close-btn",
-                      children: /* @__PURE__ */ jsx("svg", { viewBox: "0 0 24 24", className: "pgm-icon-sm", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ jsx("path", { d: "M18 6 6 18M6 6l12 12", strokeLinecap: "round" }) })
-                    }
-                  )
-                ] })
+                /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    type: "button",
+                    "aria-label": "Close accessibility panel",
+                    onClick: () => setOpen(false),
+                    className: "pgm-close-btn",
+                    children: /* @__PURE__ */ jsx("svg", { viewBox: "0 0 24 24", className: "pgm-icon-sm", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ jsx("path", { d: "M18 6 6 18M6 6l12 12", strokeLinecap: "round" }) })
+                  }
+                )
               ] }),
               /* @__PURE__ */ jsxs("div", { className: "pgm-size-section", children: [
                 /* @__PURE__ */ jsxs("div", { className: "pgm-size-header", children: [

@@ -13,7 +13,6 @@ accessibility class rules that get toggled on <html> by the widget.
 .pgm-icon    { width: 1rem;     height: 1rem;    }
 .pgm-icon-lg { width: 1.25rem;  height: 1.25rem; }
 .pgm-icon-sm { width: 0.875rem; height: 0.875rem;}
-.pgm-icon-xs { width: 0.625rem; height: 0.625rem;}
 
 /* Trigger button */
 :where(.pgm-btn) {
@@ -88,11 +87,6 @@ accessibility class rules that get toggled on <html> by the widget.
     border-bottom: 1px solid rgba(255,255,255,0.07);
     padding: 0.75rem 1rem;
 }
-.pgm-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 .pgm-header-title {
     font-size: 0.72rem;
     font-weight: 600;
@@ -108,50 +102,6 @@ accessibility class rules that get toggled on <html> by the widget.
     letter-spacing: 0.12em;
     color: rgba(255,255,255,0.35);
     text-transform: uppercase;
-}
-
-/* Theme switch */
-.pgm-theme-switch {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 2.25rem;
-    height: 1.375rem;
-    padding: 0.125rem;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 9999px;
-    background: rgba(255,255,255,0.04);
-    cursor: pointer;
-    transition: background 150ms, border-color 150ms;
-}
-.pgm-theme-switch:hover {
-    border-color: rgba(0,229,160,0.35);
-    background: rgba(255,255,255,0.08);
-}
-.pgm-theme-switch:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px #00e5a0;
-}
-.pgm-theme-switch-track {
-    display: block;
-    width: 100%;
-}
-.pgm-theme-switch-knob {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 0.875rem;
-    height: 0.875rem;
-    border-radius: 9999px;
-    background: #eef1f8;
-    color: #9a6700;
-    transform: translateX(0);
-    transition: transform 200ms, background 200ms, color 200ms;
-}
-.pgm-theme-switch--dark .pgm-theme-switch-knob {
-    transform: translateX(0.875rem);
-    background: #00e5a0;
-    color: #05291d;
 }
 
 /* Close button */
@@ -519,23 +469,6 @@ html.a11y-dyslexia * {
 /* Header text */
 [data-pgm-theme="light"] .pgm-header-title    { color: #1a1d2e; }
 [data-pgm-theme="light"] .pgm-header-subtitle { color: rgba(0,0,0,0.38); }
-[data-pgm-theme="light"] .pgm-theme-switch {
-    border-color: rgba(0,0,0,0.12);
-    background: rgba(0,0,0,0.04);
-}
-[data-pgm-theme="light"] .pgm-theme-switch:hover {
-    border-color: rgba(0,158,112,0.35);
-    background: rgba(0,0,0,0.08);
-}
-[data-pgm-theme="light"] .pgm-theme-switch:focus-visible { box-shadow: 0 0 0 2px #009e70; }
-[data-pgm-theme="light"] .pgm-theme-switch-knob {
-    background: #ffffff;
-    color: #9a6700;
-}
-[data-pgm-theme="light"] .pgm-theme-switch--dark .pgm-theme-switch-knob {
-    background: #009e70;
-    color: #ecfdf5;
-}
 [data-pgm-theme="light"] .pgm-close-btn       { color: rgba(0,0,0,0.3); }
 [data-pgm-theme="light"] .pgm-close-btn:hover { color: rgba(0,0,0,0.75); }
 [data-pgm-theme="light"] .pgm-close-btn:focus-visible { box-shadow: 0 0 0 2px #009e70; }

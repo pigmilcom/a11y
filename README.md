@@ -97,8 +97,6 @@ PigmilA11y.mount();    // mount the widget
 PigmilA11y.unmount();  // remove the widget and clean up
 ```
 
-The panel also includes a built-in light/dark switch in the header so visitors can override the widget colour theme manually.
-
 ---
 
 ## npm Installation
@@ -331,8 +329,7 @@ All rules live in `@pigmilcom/a11y/styles` and can be freely overridden in your 
 Preferences are saved under the `localStorage` key `pgm-a11y` as a JSON
 object. The widget reads and re-applies them on first client render, so
 preferences survive page reloads and navigation. On SSR the widget hydrates
-without errors — all DOM access is guarded by a `mounted` flag. Manual widget
-theme overrides are saved separately under `pgm-a11y-theme`.
+without errors — all DOM access is guarded by a `mounted` flag.
 
 ---
 
