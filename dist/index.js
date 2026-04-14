@@ -381,6 +381,8 @@ function isRtlLanguage(value) {
 // src/widget.jsx
 var import_jsx_runtime = require("react/jsx-runtime");
 var STORAGE_KEY = "pgm-a11y";
+var LANGUAGE_STORAGE_KEY = "a11y-lang";
+var LANGUAGE_CHANGE_EVENT = "pgm-a11y-language-change";
 function normalizeTheme(value) {
   if (value === "light" || value === "dark") return value;
   return null;
@@ -443,6 +445,30 @@ function save(prefs) {
   } catch {
   }
 }
+function hasExplicitLanguage(value) {
+  return typeof value === "string" ? value.trim() !== "" : value != null;
+}
+function readStoredLanguage() {
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return stored ? normalizeLanguage(stored) : null;
+  } catch {
+    return null;
+  }
+}
+function writeStoredLanguage(value) {
+  const nextLanguage = normalizeLanguage(value);
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+  } catch {
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(LANGUAGE_CHANGE_EVENT, {
+      detail: { lang: nextLanguage }
+    }));
+  }
+  return nextLanguage;
+}
 function renderBrandNotice(template, brandNode) {
   const [before, after = ""] = template.split("{brand}");
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
@@ -498,7 +524,7 @@ var TOGGLES = [
     ] })
   }
 ];
-function A11y({ className, theme = null, lang = "en" }) {
+function A11y({ className, theme = null, lang = null }) {
   const [open, setOpen] = (0, import_react.useState)(false);
   const [prefs, setPrefs] = (0, import_react.useState)(DEFAULTS);
   const [mounted, setMounted] = (0, import_react.useState)(false);
@@ -506,15 +532,16 @@ function A11y({ className, theme = null, lang = "en" }) {
   const [license, setLicense] = (0, import_react.useState)({ status: "checking", plan: "free" });
   const [pageTheme, setPageTheme] = (0, import_react.useState)("light");
   const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("light");
+  const [resolvedLanguage, setResolvedLanguage] = (0, import_react.useState)("en");
   const triggerRef = (0, import_react.useRef)(null);
   const wasOpenRef = (0, import_react.useRef)(false);
   const explicitTheme = normalizeTheme(theme);
-  const resolvedLanguage = normalizeLanguage(lang);
   const messages = getMessages(resolvedLanguage);
   const direction = isRtlLanguage(resolvedLanguage) ? "rtl" : "ltr";
   const triggerTheme = className ? null : explicitTheme ?? pageTheme;
   const textSizeLabels = messages.textSize.options;
   const closeDialog = () => setOpen(false);
+  const usesExplicitLanguage = hasExplicitLanguage(lang);
   (0, import_react.useEffect)(() => {
     setMounted(true);
   }, []);
@@ -549,6 +576,31 @@ function A11y({ className, theme = null, lang = "en" }) {
     setPrefs(saved);
     applyPrefs(saved);
   }, []);
+  (0, import_react.useEffect)(() => {
+    if (usesExplicitLanguage) {
+      setResolvedLanguage(writeStoredLanguage(lang));
+      return;
+    }
+    const storedLanguage = readStoredLanguage();
+    setResolvedLanguage(storedLanguage ?? writeStoredLanguage("en"));
+  }, [lang, usesExplicitLanguage]);
+  (0, import_react.useEffect)(() => {
+    if (usesExplicitLanguage) return;
+    const syncStoredLanguage = () => {
+      const storedLanguage = readStoredLanguage();
+      setResolvedLanguage(storedLanguage ?? writeStoredLanguage("en"));
+    };
+    const onStorage = (event) => {
+      if (event.key && event.key !== LANGUAGE_STORAGE_KEY) return;
+      syncStoredLanguage();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(LANGUAGE_CHANGE_EVENT, syncStoredLanguage);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(LANGUAGE_CHANGE_EVENT, syncStoredLanguage);
+    };
+  }, [usesExplicitLanguage]);
   (0, import_react.useEffect)(() => {
     if (!open) return;
     const onKey = (e) => {

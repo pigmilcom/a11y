@@ -17,7 +17,7 @@
         jsDelivr (recommended): https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.1.1/dist/a11y.cdn.js
         Self-hosted:            https://cdn.pigmil.com/a11y/dist/a11y.cdn.js
     -->
-    <script id="pgm-a11y-script" src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right" data-lang="en"></script>
+    <script id="pgm-a11y-script" src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js" data-position="bottom-right"></script>
 
     <!-- Theme init: apply saved preference before first paint to avoid flash -->
     <script>
@@ -676,28 +676,17 @@ const A11y = a11y;
     <script>
     (function () {
         var STORAGE_KEY = 'pgm-theme';
+        var LANGUAGE_STORAGE_KEY = 'a11y-lang';
+        var LANGUAGE_CHANGE_EVENT = 'pgm-a11y-language-change';
         var mq = window.matchMedia('(prefers-color-scheme: dark)');
         var a11yScript = document.getElementById('pgm-a11y-script');
         var langPicker = document.getElementById('lang-picker');
 
-        function refreshA11yWidget() {
-            if (!a11yScript) return;
-
-            if (window.PigmilA11y && typeof window.PigmilA11y.unmount === 'function' && typeof window.PigmilA11y.mount === 'function') {
-                window.PigmilA11y.unmount();
-                window.PigmilA11y.mount();
-                return;
-            }
-
-            var nextScript = a11yScript.cloneNode(false);
-            var existingRoot = document.getElementById('pgm-a11y-root');
-            var existingStyles = document.getElementById('pgm-a11y-styles');
-
-            if (existingRoot) existingRoot.remove();
-            if (existingStyles) existingStyles.remove();
-
-            a11yScript.parentNode.replaceChild(nextScript, a11yScript);
-            a11yScript = nextScript;
+        function getStoredLanguage() {
+            var stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+            if (stored) return stored;
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+            return 'en';
         }
 
         function syncA11yTheme(theme) {
@@ -726,9 +715,10 @@ const A11y = a11y;
         }
 
         function syncA11yLanguage(lang) {
-            if (!a11yScript) return;
-            a11yScript.dataset.lang = lang;
-            refreshA11yWidget();
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+            window.dispatchEvent(new CustomEvent(LANGUAGE_CHANGE_EVENT, {
+                detail: { lang: lang },
+            }));
         }
 
         // Wire up buttons
@@ -739,7 +729,7 @@ const A11y = a11y;
         });
 
         if (langPicker && a11yScript) {
-            langPicker.value = a11yScript.dataset.lang || 'en';
+            langPicker.value = getStoredLanguage();
             langPicker.addEventListener('change', function () {
                 syncA11yLanguage(langPicker.value);
             });

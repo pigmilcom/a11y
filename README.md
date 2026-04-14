@@ -17,7 +17,6 @@ Served from the npm registry via jsDelivr's global edge network — always the l
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
-  data-lang="en"
 ></script>
 ```
 
@@ -27,7 +26,6 @@ Pin to a specific version:
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y@1.0.1/dist/a11y.cdn.js"
   data-position="bottom-right"
-  data-lang="en"
 ></script>
 ```
 
@@ -39,7 +37,6 @@ Use your own CDN endpoint for full control over deployment:
 <script
   src="https://cdn.pigmil.com/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
-  data-lang="en"
 ></script>
 ```
 
@@ -75,15 +72,19 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
 | `ar`  | Arabic |
 | `hi`  | Hindi |
 
-The CDN build reacts to live `data-lang` updates after mount, so changing the
-script tag from JavaScript updates the widget copy without a full page reload.
+Language resolution works like this:
+
+1. If `data-lang` or the React `lang` prop is provided, that language is used and saved to `localStorage['a11y-lang']`.
+2. If `data-lang` / `lang` is omitted, the widget reads `localStorage['a11y-lang']`.
+3. If `localStorage['a11y-lang']` does not exist yet, the widget defaults to `'en'` and saves it.
+
+This means the widget language can be changed dynamically by updating `localStorage['a11y-lang']`.
 
 ```html
-<!-- Default — English UI, follows the page's html theme and falls back to light -->
+<!-- Default — follows the page's html theme, reads a11y-lang from localStorage, falls back to en -->
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
-  data-lang="en"
 ></script>
 
 <!-- Equivalent explicit auto mode -->
@@ -91,7 +92,6 @@ script tag from JavaScript updates the widget copy without a full page reload.
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="auto"
-  data-lang="en"
 ></script>
 
 <!-- Force light theme -->
@@ -99,7 +99,6 @@ script tag from JavaScript updates the widget copy without a full page reload.
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="light"
-  data-lang="en"
 ></script>
 
 <!-- Force dark theme -->
@@ -107,7 +106,6 @@ script tag from JavaScript updates the widget copy without a full page reload.
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
   data-theme="dark"
-  data-lang="en"
 ></script>
 
 <!-- Spanish UI -->
@@ -119,9 +117,13 @@ script tag from JavaScript updates the widget copy without a full page reload.
 ```
 
 ```js
-const script = document.getElementById('pgm-a11y-script');
-script.dataset.lang = 'fr';
+localStorage.setItem('a11y-lang', 'fr');
+window.dispatchEvent(new CustomEvent('pgm-a11y-language-change', {
+  detail: { lang: 'fr' }
+}));
 ```
+
+If you still pass `data-lang="fr"`, that explicit value wins and also updates `localStorage['a11y-lang']`.
 
 ### Programmatic control
 
@@ -198,12 +200,12 @@ import a11y from '@pigmilcom/a11y';
 // Assign to a capitalized variable to use in JSX
 const A11y = a11y;
 
-<A11y className="fixed bottom-4 right-4 rounded" lang="en" />
+<A11y className="fixed bottom-4 right-4 rounded" />
 ```
 
 The `className` prop is merged onto the trigger button — use Tailwind classes,
 custom classes, or anything your bundler supports to position the widget. The
-`lang` prop is reactive, so updating it re-renders the widget in the new locale.
+`lang` prop is reactive, and when provided it also syncs `localStorage['a11y-lang']`.
 
 ---
 
@@ -313,7 +315,7 @@ export default function App() {
 | ----------- | -------- | -------- | ---------------------------------------------------- |
 | `className` | `string` | —        | Extra classes added to the trigger `<button>`        |
 | `theme`     | `string` | inferred | Widget colour theme: `'auto'` \| `'light'` \| `'dark'` |
-| `lang`      | `string` | `'en'`   | Widget UI language: `'en'`, `'es'`, `'fr'`, `'de'`, `'pt'`, `'zh'`, `'ar'`, `'hi'` |
+| `lang`      | `string` | `localStorage['a11y-lang']` or `'en'` | Widget UI language: `'en'`, `'es'`, `'fr'`, `'de'`, `'pt'`, `'zh'`, `'ar'`, `'hi'` |
 
 ### `theme` prop
 
@@ -343,6 +345,13 @@ const A11y = a11y;
 <A11y className="fixed bottom-4 right-4" lang="zh" />
 ```
 
+```js
+localStorage.setItem('a11y-lang', 'ar');
+window.dispatchEvent(new CustomEvent('pgm-a11y-language-change', {
+  detail: { lang: 'ar' }
+}));
+```
+
 ---
 
 ## CSS classes applied to `<html>`
@@ -370,6 +379,13 @@ Preferences are saved under the `localStorage` key `pgm-a11y` as a JSON
 object. The widget reads and re-applies them on first client render, so
 preferences survive page reloads and navigation. On SSR the widget hydrates
 without errors — all DOM access is guarded by a `mounted` flag.
+
+Widget language is stored separately under `localStorage['a11y-lang']`.
+
+- If `data-lang` or `lang` is provided, that value is normalized and saved to `a11y-lang`.
+- If no explicit language is provided, the widget reads `a11y-lang`.
+- If `a11y-lang` is missing, the widget sets it to `'en'` automatically.
+- Updating `a11y-lang` and dispatching `pgm-a11y-language-change` updates the widget language dynamically on the same page.
 
 ---
 

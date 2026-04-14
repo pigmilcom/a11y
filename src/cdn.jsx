@@ -49,7 +49,7 @@ function getScriptConfig() {
     return {
         position: _script?.dataset?.position ?? 'bottom-right',
         theme: _script?.dataset?.theme ?? null,
-        lang: _script?.dataset?.lang ?? 'en',
+        lang: _script?.dataset?.lang ?? null,
     };
 }
 

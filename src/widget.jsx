@@ -17,6 +17,8 @@ import { getMessages, isRtlLanguage, normalizeLanguage } from './i18n/index.js';
 
 // ── Storage key ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'pgm-a11y';
+const LANGUAGE_STORAGE_KEY = 'a11y-lang';
+const LANGUAGE_CHANGE_EVENT = 'pgm-a11y-language-change';
 
 function normalizeTheme(value) {
     if (value === 'light' || value === 'dark') return value;
@@ -89,6 +91,35 @@ function load() {
 }
 function save(prefs) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch {}
+}
+
+function hasExplicitLanguage(value) {
+    return typeof value === 'string' ? value.trim() !== '' : value != null;
+}
+
+function readStoredLanguage() {
+    try {
+        const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        return stored ? normalizeLanguage(stored) : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeStoredLanguage(value) {
+    const nextLanguage = normalizeLanguage(value);
+
+    try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(LANGUAGE_CHANGE_EVENT, {
+            detail: { lang: nextLanguage },
+        }));
+    }
+
+    return nextLanguage;
 }
 
 function renderBrandNotice(template, brandNode) {
@@ -172,7 +203,7 @@ const TOGGLES = [
 // ── Widget ────────────────────────────────────────────────────────────────────
 // theme: null | 'auto' | 'light' | 'dark'
 // null / 'auto' infer from the page's <html> theme, otherwise default to light.
-export default function A11y({ className, theme = null, lang = 'en' }) {
+export default function A11y({ className, theme = null, lang = null }) {
     const [open, setOpen]           = useState(false);
     const [prefs, setPrefs]         = useState(DEFAULTS);
     const [mounted, setMounted]     = useState(false);
@@ -180,15 +211,16 @@ export default function A11y({ className, theme = null, lang = 'en' }) {
     const [license, setLicense]     = useState({ status: 'checking', plan: 'free' });
     const [pageTheme, setPageTheme] = useState('light');
     const [resolvedTheme, setResolvedTheme] = useState('light');
+    const [resolvedLanguage, setResolvedLanguage] = useState('en');
     const triggerRef                = useRef(null);
     const wasOpenRef                = useRef(false);
     const explicitTheme             = normalizeTheme(theme);
-    const resolvedLanguage          = normalizeLanguage(lang);
     const messages                  = getMessages(resolvedLanguage);
     const direction                 = isRtlLanguage(resolvedLanguage) ? 'rtl' : 'ltr';
     const triggerTheme              = className ? null : (explicitTheme ?? pageTheme);
     const textSizeLabels            = messages.textSize.options;
     const closeDialog               = () => setOpen(false);
+    const usesExplicitLanguage      = hasExplicitLanguage(lang);
 
     // Mark mounted so portal renders only client-side
     useEffect(() => {
@@ -240,6 +272,38 @@ export default function A11y({ className, theme = null, lang = 'en' }) {
         setPrefs(saved);
         applyPrefs(saved);
     }, []);
+
+    useEffect(() => {
+        if (usesExplicitLanguage) {
+            setResolvedLanguage(writeStoredLanguage(lang));
+            return;
+        }
+
+        const storedLanguage = readStoredLanguage();
+        setResolvedLanguage(storedLanguage ?? writeStoredLanguage('en'));
+    }, [lang, usesExplicitLanguage]);
+
+    useEffect(() => {
+        if (usesExplicitLanguage) return;
+
+        const syncStoredLanguage = () => {
+            const storedLanguage = readStoredLanguage();
+            setResolvedLanguage(storedLanguage ?? writeStoredLanguage('en'));
+        };
+
+        const onStorage = (event) => {
+            if (event.key && event.key !== LANGUAGE_STORAGE_KEY) return;
+            syncStoredLanguage();
+        };
+
+        window.addEventListener('storage', onStorage);
+        window.addEventListener(LANGUAGE_CHANGE_EVENT, syncStoredLanguage);
+
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener(LANGUAGE_CHANGE_EVENT, syncStoredLanguage);
+        };
+    }, [usesExplicitLanguage]);
 
     // Close on Escape
     useEffect(() => {

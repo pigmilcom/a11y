@@ -7,7 +7,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.3] - [1.2.7] - 2026-04-14
+## [1.2.3] - [1.2.8] - 2026-04-14
 
 ### Changed
 - Add Multi-language (8 translations - en, es, fr, de, pt, zh, ar, hi)
