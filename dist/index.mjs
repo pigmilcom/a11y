@@ -149,10 +149,12 @@ function A11y({ className, theme = null }) {
   const [mounted, setMounted] = useState(false);
   const [notice, setNotice] = useState(false);
   const [license, setLicense] = useState({ status: "checking", plan: "free" });
+  const [pageTheme, setPageTheme] = useState("light");
   const [themeOverride, setThemeOverride] = useState(null);
   const [resolvedTheme, setResolvedTheme] = useState("light");
   const triggerRef = useRef(null);
   const explicitTheme = normalizeTheme(theme);
+  const triggerTheme = className ? null : explicitTheme ?? pageTheme;
   const isDarkTheme = resolvedTheme === "dark";
   useEffect(() => {
     setMounted(true);
@@ -163,15 +165,11 @@ function A11y({ className, theme = null }) {
     }
   }, []);
   useEffect(() => {
-    if (themeOverride) {
-      setResolvedTheme(themeOverride);
-      return;
-    }
     if (explicitTheme) {
-      setResolvedTheme(explicitTheme);
+      setPageTheme(explicitTheme);
       return;
     }
-    const applyDetectedTheme = () => setResolvedTheme(detectDocumentTheme());
+    const applyDetectedTheme = () => setPageTheme(detectDocumentTheme());
     applyDetectedTheme();
     const observer = new MutationObserver(applyDetectedTheme);
     observer.observe(document.documentElement, {
@@ -179,7 +177,14 @@ function A11y({ className, theme = null }) {
       attributeFilter: ["class", "style"]
     });
     return () => observer.disconnect();
-  }, [explicitTheme, themeOverride]);
+  }, [explicitTheme]);
+  useEffect(() => {
+    if (themeOverride) {
+      setResolvedTheme(themeOverride);
+      return;
+    }
+    setResolvedTheme(explicitTheme ?? pageTheme);
+  }, [explicitTheme, pageTheme, themeOverride]);
   useEffect(() => {
     var _a;
     const fn = typeof window !== "undefined" ? (_a = window == null ? void 0 : window.PigmilLicense) == null ? void 0 : _a.validateLicense : null;
@@ -237,7 +242,7 @@ function A11y({ className, theme = null }) {
         "aria-haspopup": "dialog",
         onClick: () => setOpen((v) => !v),
         className: `pgm-btn a11y-widget-btn${className ? ` ${className}` : ""}`,
-        "data-pgm-theme": resolvedTheme,
+        "data-pgm-theme": triggerTheme,
         children: [
           /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 24 24", className: "pgm-icon-lg", fill: "none", stroke: "currentColor", strokeWidth: 1.8, "aria-hidden": "true", children: [
             /* @__PURE__ */ jsx("circle", { cx: "12", cy: "5", r: "1.5", fill: "currentColor", stroke: "none" }),

@@ -16,7 +16,7 @@ accessibility class rules that get toggled on <html> by the widget.
 .pgm-icon-xs { width: 0.625rem; height: 0.625rem;}
 
 /* Trigger button */
-.pgm-btn {
+:where(.pgm-btn) {
     position: relative;
     display: flex;
     align-items: center;
@@ -32,12 +32,12 @@ accessibility class rules that get toggled on <html> by the widget.
     border-radius: 0.25rem;
     padding: 0;
 }
-.pgm-btn:hover {
+:where(.pgm-btn):hover {
     border-color: rgba(0,229,160,0.4);
     background: rgba(0,229,160,0.08);
     color: #00e5a0;
 }
-.pgm-btn:focus-visible {
+:where(.pgm-btn):focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px #00e5a0;
 }
@@ -486,18 +486,18 @@ html.a11y-dyslexia * {
  ───────────────────────────────────────────────────────────────────────────── */
 
 /* Trigger button */
-[data-pgm-theme="light"].pgm-btn {
+[data-pgm-theme="light"]:where(.pgm-btn) {
     border-color: rgba(0,0,0,0.1);
     background:   rgba(255,255,255,0.95);
     color:        rgba(0,0,0,0.45);
     box-shadow:   0 4px 12px rgba(0,0,0,0.08);
 }
-[data-pgm-theme="light"].pgm-btn:hover {
+[data-pgm-theme="light"]:where(.pgm-btn):hover {
     border-color: rgba(0,180,120,0.5);
     background:   rgba(0,180,120,0.07);
     color:        #009e70;
 }
-[data-pgm-theme="light"].pgm-btn:focus-visible {
+[data-pgm-theme="light"]:where(.pgm-btn):focus-visible {
     box-shadow: 0 0 0 2px #009e70;
 }
 

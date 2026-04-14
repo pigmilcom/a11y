@@ -175,10 +175,12 @@ function A11y({ className, theme = null }) {
   const [mounted, setMounted] = (0, import_react.useState)(false);
   const [notice, setNotice] = (0, import_react.useState)(false);
   const [license, setLicense] = (0, import_react.useState)({ status: "checking", plan: "free" });
+  const [pageTheme, setPageTheme] = (0, import_react.useState)("light");
   const [themeOverride, setThemeOverride] = (0, import_react.useState)(null);
   const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("light");
   const triggerRef = (0, import_react.useRef)(null);
   const explicitTheme = normalizeTheme(theme);
+  const triggerTheme = className ? null : explicitTheme ?? pageTheme;
   const isDarkTheme = resolvedTheme === "dark";
   (0, import_react.useEffect)(() => {
     setMounted(true);
@@ -189,15 +191,11 @@ function A11y({ className, theme = null }) {
     }
   }, []);
   (0, import_react.useEffect)(() => {
-    if (themeOverride) {
-      setResolvedTheme(themeOverride);
-      return;
-    }
     if (explicitTheme) {
-      setResolvedTheme(explicitTheme);
+      setPageTheme(explicitTheme);
       return;
     }
-    const applyDetectedTheme = () => setResolvedTheme(detectDocumentTheme());
+    const applyDetectedTheme = () => setPageTheme(detectDocumentTheme());
     applyDetectedTheme();
     const observer = new MutationObserver(applyDetectedTheme);
     observer.observe(document.documentElement, {
@@ -205,7 +203,14 @@ function A11y({ className, theme = null }) {
       attributeFilter: ["class", "style"]
     });
     return () => observer.disconnect();
-  }, [explicitTheme, themeOverride]);
+  }, [explicitTheme]);
+  (0, import_react.useEffect)(() => {
+    if (themeOverride) {
+      setResolvedTheme(themeOverride);
+      return;
+    }
+    setResolvedTheme(explicitTheme ?? pageTheme);
+  }, [explicitTheme, pageTheme, themeOverride]);
   (0, import_react.useEffect)(() => {
     var _a;
     const fn = typeof window !== "undefined" ? (_a = window == null ? void 0 : window.PigmilLicense) == null ? void 0 : _a.validateLicense : null;
@@ -263,7 +268,7 @@ function A11y({ className, theme = null }) {
         "aria-haspopup": "dialog",
         onClick: () => setOpen((v) => !v),
         className: `pgm-btn a11y-widget-btn${className ? ` ${className}` : ""}`,
-        "data-pgm-theme": resolvedTheme,
+        "data-pgm-theme": triggerTheme,
         children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-lg", fill: "none", stroke: "currentColor", strokeWidth: 1.8, "aria-hidden": "true", children: [
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "12", cy: "5", r: "1.5", fill: "currentColor", stroke: "none" }),

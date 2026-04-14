@@ -195,10 +195,12 @@ export default function A11y({ className, theme = null }) {
     const [mounted, setMounted]     = useState(false);
     const [notice, setNotice]       = useState(false);
     const [license, setLicense]     = useState({ status: 'checking', plan: 'free' });
+    const [pageTheme, setPageTheme] = useState('light');
     const [themeOverride, setThemeOverride] = useState(null);
     const [resolvedTheme, setResolvedTheme] = useState('light');
     const triggerRef                = useRef(null);
     const explicitTheme             = normalizeTheme(theme);
+    const triggerTheme              = className ? null : (explicitTheme ?? pageTheme);
     const isDarkTheme               = resolvedTheme === 'dark';
 
     // Mark mounted so portal renders only client-side
@@ -211,18 +213,15 @@ export default function A11y({ className, theme = null }) {
         }
     }, []);
 
-    // Resolve theme: stored override wins, then explicit prop, then page theme.
+    // Track the page theme from <html> so the trigger button can remain independent
+    // from the dialog's manual theme override.
     useEffect(() => {
-        if (themeOverride) {
-            setResolvedTheme(themeOverride);
-            return;
-        }
         if (explicitTheme) {
-            setResolvedTheme(explicitTheme);
+            setPageTheme(explicitTheme);
             return;
         }
 
-        const applyDetectedTheme = () => setResolvedTheme(detectDocumentTheme());
+        const applyDetectedTheme = () => setPageTheme(detectDocumentTheme());
         applyDetectedTheme();
 
         const observer = new MutationObserver(applyDetectedTheme);
@@ -232,7 +231,17 @@ export default function A11y({ className, theme = null }) {
         });
 
         return () => observer.disconnect();
-    }, [explicitTheme, themeOverride]);
+    }, [explicitTheme]);
+
+    // Resolve dialog theme: stored override wins, then explicit prop, then page theme.
+    useEffect(() => {
+        if (themeOverride) {
+            setResolvedTheme(themeOverride);
+            return;
+        }
+
+        setResolvedTheme(explicitTheme ?? pageTheme);
+    }, [explicitTheme, pageTheme, themeOverride]);
 
     // Validate domain license — reads window.PigmilLicense loaded by cdn.jsx
     // (or host page). Fails-open for npm usage without a CDN pre-load so the
@@ -307,7 +316,7 @@ export default function A11y({ className, theme = null }) {
                 aria-haspopup="dialog"
                 onClick={() => setOpen((v) => !v)}
                 className={`pgm-btn a11y-widget-btn${className ? ` ${className}` : ''}`}
-                data-pgm-theme={resolvedTheme}
+                data-pgm-theme={triggerTheme}
             >
                 <svg viewBox="0 0 24 24" className="pgm-icon-lg" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
                     <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none" />
