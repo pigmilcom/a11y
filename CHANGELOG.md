@@ -7,6 +7,13 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.4] - 2026-04-14
+
+### Changed
+- Fix widget theme mode
+
+---
+
 ## [1.2.3] - 2026-04-14
 
 ### Changed

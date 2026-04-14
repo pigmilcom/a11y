@@ -31,6 +31,21 @@ var import_react = require("react");
 var import_react_dom = require("react-dom");
 var import_jsx_runtime = require("react/jsx-runtime");
 var STORAGE_KEY = "pgm-a11y";
+var THEME_STORAGE_KEY = "pgm-a11y-theme";
+function normalizeTheme(value) {
+  if (value === "light" || value === "dark") return value;
+  return null;
+}
+function detectDocumentTheme() {
+  var _a, _b;
+  const root = document.documentElement;
+  const inlineColorScheme = (_a = root.style.colorScheme) == null ? void 0 : _a.trim().toLowerCase();
+  const computedColorScheme = (_b = window.getComputedStyle(root).colorScheme) == null ? void 0 : _b.trim().toLowerCase();
+  if (root.classList.contains("dark") || inlineColorScheme === "dark" || computedColorScheme === "dark") {
+    return "dark";
+  }
+  return "light";
+}
 var DEFAULTS = {
   textSize: 0,
   // 0=normal | 1=large | 2=x-large
@@ -76,6 +91,19 @@ function load() {
 function save(prefs) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  } catch {
+  }
+}
+function loadThemeOverride() {
+  try {
+    return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+function saveThemeOverride(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
   }
 }
@@ -141,28 +169,43 @@ var TOGGLES = [
     ] })
   }
 ];
-function A11y({ className, theme = "auto" }) {
+function A11y({ className, theme = null }) {
   const [open, setOpen] = (0, import_react.useState)(false);
   const [prefs, setPrefs] = (0, import_react.useState)(DEFAULTS);
   const [mounted, setMounted] = (0, import_react.useState)(false);
   const [notice, setNotice] = (0, import_react.useState)(false);
   const [license, setLicense] = (0, import_react.useState)({ status: "checking", plan: "free" });
-  const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("dark");
+  const [themeOverride, setThemeOverride] = (0, import_react.useState)(null);
+  const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("light");
   const triggerRef = (0, import_react.useRef)(null);
+  const explicitTheme = normalizeTheme(theme);
+  const isDarkTheme = resolvedTheme === "dark";
   (0, import_react.useEffect)(() => {
     setMounted(true);
+    const storedTheme = loadThemeOverride();
+    if (storedTheme) {
+      setThemeOverride(storedTheme);
+      setResolvedTheme(storedTheme);
+    }
   }, []);
   (0, import_react.useEffect)(() => {
-    if (theme === "light" || theme === "dark") {
-      setResolvedTheme(theme);
+    if (themeOverride) {
+      setResolvedTheme(themeOverride);
       return;
     }
-    const mq = window.matchMedia("(prefers-color-scheme: light)");
-    setResolvedTheme(mq.matches ? "light" : "dark");
-    const onChange = (e) => setResolvedTheme(e.matches ? "light" : "dark");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [theme]);
+    if (explicitTheme) {
+      setResolvedTheme(explicitTheme);
+      return;
+    }
+    const applyDetectedTheme = () => setResolvedTheme(detectDocumentTheme());
+    applyDetectedTheme();
+    const observer = new MutationObserver(applyDetectedTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"]
+    });
+    return () => observer.disconnect();
+  }, [explicitTheme, themeOverride]);
   (0, import_react.useEffect)(() => {
     var _a;
     const fn = typeof window !== "undefined" ? (_a = window == null ? void 0 : window.PigmilLicense) == null ? void 0 : _a.validateLicense : null;
@@ -201,6 +244,12 @@ function A11y({ className, theme = "auto" }) {
     setPrefs(DEFAULTS);
     applyPrefs(DEFAULTS);
     save(DEFAULTS);
+  };
+  const toggleWidgetTheme = () => {
+    const nextTheme = isDarkTheme ? "light" : "dark";
+    setThemeOverride(nextTheme);
+    setResolvedTheme(nextTheme);
+    saveThemeOverride(nextTheme);
   };
   const isModified = JSON.stringify(prefs) !== JSON.stringify(DEFAULTS);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
@@ -249,16 +298,33 @@ function A11y({ className, theme = "auto" }) {
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "pgm-header-title", children: "Accessibility" }),
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "pgm-header-subtitle", children: "WCAG 2.1 \xB7 Personalise your experience" })
                 ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                  "button",
-                  {
-                    type: "button",
-                    "aria-label": "Close accessibility panel",
-                    onClick: () => setOpen(false),
-                    className: "pgm-close-btn",
-                    children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-sm", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M18 6 6 18M6 6l12 12", strokeLinecap: "round" }) })
-                  }
-                )
+                /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "pgm-header-actions", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                    "button",
+                    {
+                      type: "button",
+                      role: "switch",
+                      "aria-checked": isDarkTheme,
+                      "aria-label": `Use ${isDarkTheme ? "light" : "dark"} widget theme`,
+                      onClick: toggleWidgetTheme,
+                      className: `pgm-theme-switch${isDarkTheme ? " pgm-theme-switch--dark" : ""}`,
+                      children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "pgm-theme-switch-track", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "pgm-theme-switch-knob", children: isDarkTheme ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-xs", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M20 15.5A7.5 7.5 0 0 1 8.5 4 9 9 0 1 0 20 15.5Z", strokeLinecap: "round", strokeLinejoin: "round" }) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-xs", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "12", cy: "12", r: "4" }),
+                        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07 6.7 17.3M17.3 6.7l1.77-1.77", strokeLinecap: "round" })
+                      ] }) }) })
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                    "button",
+                    {
+                      type: "button",
+                      "aria-label": "Close accessibility panel",
+                      onClick: () => setOpen(false),
+                      className: "pgm-close-btn",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", className: "pgm-icon-sm", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M18 6 6 18M6 6l12 12", strokeLinecap: "round" }) })
+                    }
+                  )
+                ] })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "pgm-size-section", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "pgm-size-header", children: [

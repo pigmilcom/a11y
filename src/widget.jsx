@@ -16,6 +16,24 @@ import { createPortal } from 'react-dom';
 
 // ── Storage key ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'pgm-a11y';
+const THEME_STORAGE_KEY = 'pgm-a11y-theme';
+
+function normalizeTheme(value) {
+    if (value === 'light' || value === 'dark') return value;
+    return null;
+}
+
+function detectDocumentTheme() {
+    const root = document.documentElement;
+    const inlineColorScheme = root.style.colorScheme?.trim().toLowerCase();
+    const computedColorScheme = window.getComputedStyle(root).colorScheme?.trim().toLowerCase();
+
+    if (root.classList.contains('dark') || inlineColorScheme === 'dark' || computedColorScheme === 'dark') {
+        return 'dark';
+    }
+
+    return 'light';
+}
 
 // ── Default preferences ──────────────────────────────────────────────────────
 const DEFAULTS = {
@@ -71,6 +89,18 @@ function load() {
 }
 function save(prefs) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch {}
+}
+
+function loadThemeOverride() {
+    try {
+        return normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
+    } catch {
+        return null;
+    }
+}
+
+function saveThemeOverride(theme) {
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch {}
 }
 
 // ── Option rows config ────────────────────────────────────────────────────────
@@ -157,33 +187,52 @@ const TOGGLES = [
 ];
 
 // ── Widget ────────────────────────────────────────────────────────────────────
-// theme: 'auto' (default) | 'light' | 'dark'
-// 'auto' follows the OS/browser prefers-color-scheme and updates live.
-export default function A11y({ className, theme = 'auto' }) {
+// theme: null | 'auto' | 'light' | 'dark'
+// null / 'auto' infer from the page's <html> theme, otherwise default to light.
+export default function A11y({ className, theme = null }) {
     const [open, setOpen]           = useState(false);
     const [prefs, setPrefs]         = useState(DEFAULTS);
     const [mounted, setMounted]     = useState(false);
     const [notice, setNotice]       = useState(false);
     const [license, setLicense]     = useState({ status: 'checking', plan: 'free' });
-    const [resolvedTheme, setResolvedTheme] = useState('dark'); // SSR-safe default
+    const [themeOverride, setThemeOverride] = useState(null);
+    const [resolvedTheme, setResolvedTheme] = useState('light');
     const triggerRef                = useRef(null);
+    const explicitTheme             = normalizeTheme(theme);
+    const isDarkTheme               = resolvedTheme === 'dark';
 
     // Mark mounted so portal renders only client-side
-    useEffect(() => { setMounted(true); }, []);
-
-    // Resolve theme: explicit prop wins; 'auto' follows prefers-color-scheme.
     useEffect(() => {
-        if (theme === 'light' || theme === 'dark') {
-            setResolvedTheme(theme);
+        setMounted(true);
+        const storedTheme = loadThemeOverride();
+        if (storedTheme) {
+            setThemeOverride(storedTheme);
+            setResolvedTheme(storedTheme);
+        }
+    }, []);
+
+    // Resolve theme: stored override wins, then explicit prop, then page theme.
+    useEffect(() => {
+        if (themeOverride) {
+            setResolvedTheme(themeOverride);
             return;
         }
-        // 'auto' — read system preference and subscribe to changes
-        const mq = window.matchMedia('(prefers-color-scheme: light)');
-        setResolvedTheme(mq.matches ? 'light' : 'dark');
-        const onChange = (e) => setResolvedTheme(e.matches ? 'light' : 'dark');
-        mq.addEventListener('change', onChange);
-        return () => mq.removeEventListener('change', onChange);
-    }, [theme]);
+        if (explicitTheme) {
+            setResolvedTheme(explicitTheme);
+            return;
+        }
+
+        const applyDetectedTheme = () => setResolvedTheme(detectDocumentTheme());
+        applyDetectedTheme();
+
+        const observer = new MutationObserver(applyDetectedTheme);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'style'],
+        });
+
+        return () => observer.disconnect();
+    }, [explicitTheme, themeOverride]);
 
     // Validate domain license — reads window.PigmilLicense loaded by cdn.jsx
     // (or host page). Fails-open for npm usage without a CDN pre-load so the
@@ -236,6 +285,13 @@ export default function A11y({ className, theme = 'auto' }) {
         setPrefs(DEFAULTS);
         applyPrefs(DEFAULTS);
         save(DEFAULTS);
+    };
+
+    const toggleWidgetTheme = () => {
+        const nextTheme = isDarkTheme ? 'light' : 'dark';
+        setThemeOverride(nextTheme);
+        setResolvedTheme(nextTheme);
+        saveThemeOverride(nextTheme);
     };
 
     const isModified = JSON.stringify(prefs) !== JSON.stringify(DEFAULTS);
@@ -291,16 +347,41 @@ export default function A11y({ className, theme = 'auto' }) {
                                     WCAG 2.1 · Personalise your experience
                                 </p>
                             </div>
-                            <button
-                                type="button"
-                                aria-label="Close accessibility panel"
-                                onClick={() => setOpen(false)}
-                                className="pgm-close-btn"
-                            >
-                                <svg viewBox="0 0 24 24" className="pgm-icon-sm" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                                    <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-                                </svg>
-                            </button>
+                            <div className="pgm-header-actions">
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={isDarkTheme}
+                                    aria-label={`Use ${isDarkTheme ? 'light' : 'dark'} widget theme`}
+                                    onClick={toggleWidgetTheme}
+                                    className={`pgm-theme-switch${isDarkTheme ? ' pgm-theme-switch--dark' : ''}`}
+                                >
+                                    <span className="pgm-theme-switch-track" aria-hidden="true">
+                                        <span className="pgm-theme-switch-knob">
+                                            {isDarkTheme ? (
+                                                <svg viewBox="0 0 24 24" className="pgm-icon-xs" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                                    <path d="M20 15.5A7.5 7.5 0 0 1 8.5 4 9 9 0 1 0 20 15.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            ) : (
+                                                <svg viewBox="0 0 24 24" className="pgm-icon-xs" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                                    <circle cx="12" cy="12" r="4" />
+                                                    <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07 6.7 17.3M17.3 6.7l1.77-1.77" strokeLinecap="round" />
+                                                </svg>
+                                            )}
+                                        </span>
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label="Close accessibility panel"
+                                    onClick={() => setOpen(false)}
+                                    className="pgm-close-btn"
+                                >
+                                    <svg viewBox="0 0 24 24" className="pgm-icon-sm" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                        <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Text size stepper */}

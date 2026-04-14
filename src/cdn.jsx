@@ -56,7 +56,7 @@ function mount() {
     // line-height:0 / font-size:0 prevent inherited whitespace from adding
     // phantom height/width to the container div.
     const pos   = _script?.dataset?.position ?? 'bottom-right';
-    const theme  = _script?.dataset?.theme ?? 'auto';
+    const theme  = _script?.dataset?.theme ?? null;
     const posCSS = POSITIONS[pos] ?? POSITIONS['bottom-right'];
     container.setAttribute('style', `position:fixed;z-index:9998;line-height:0;font-size:0;${posCSS}`);
     document.body.appendChild(container);

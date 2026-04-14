@@ -55,12 +55,18 @@ The widget auto-mounts on `DOMContentLoaded`. React 18 and all CSS are bundled i
 
 | Value    | Behaviour                                              |
 | -------- | ------------------------------------------------------ |
-| `auto`   | Follows OS/browser `prefers-color-scheme` (default)    |
+| omitted / `auto` | Matches `<html class="dark">` or `color-scheme: dark`; otherwise light |
 | `light`  | Always use the light theme                             |
 | `dark`   | Always use the dark theme                              |
 
 ```html
-<!-- Auto (default) — updates live when the OS switches -->
+<!-- Default — follows the page's html theme and falls back to light -->
+<script
+  src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
+  data-position="bottom-right"
+></script>
+
+<!-- Equivalent explicit auto mode -->
 <script
   src="https://cdn.jsdelivr.net/npm/@pigmilcom/a11y/dist/a11y.cdn.js"
   data-position="bottom-right"
@@ -90,6 +96,8 @@ The CDN build exposes `window.PigmilA11y` for manual control:
 PigmilA11y.mount();    // mount the widget
 PigmilA11y.unmount();  // remove the widget and clean up
 ```
+
+The panel also includes a built-in light/dark switch in the header so visitors can override the widget colour theme manually.
 
 ---
 
@@ -270,13 +278,13 @@ export default function App() {
 | Prop        | Type     | Default  | Description                                          |
 | ----------- | -------- | -------- | ---------------------------------------------------- |
 | `className` | `string` | —        | Extra classes added to the trigger `<button>`        |
-| `theme`     | `string` | `'auto'` | Widget colour theme: `'auto'` \| `'light'` \| `'dark'` |
+| `theme`     | `string` | inferred | Widget colour theme: `'auto'` \| `'light'` \| `'dark'` |
 
 ### `theme` prop
 
 | Value    | Behaviour                                                        |
 | -------- | ---------------------------------------------------------------- |
-| `'auto'` | Reads `prefers-color-scheme` and updates live when the OS changes |
+| omitted / `'auto'` | Matches `<html class="dark">` or `color-scheme: dark`; otherwise light |
 | `'light'`| Always renders the light theme                                   |
 | `'dark'` | Always renders the dark theme                                    |
 
@@ -284,7 +292,10 @@ export default function App() {
 import a11y from '@pigmilcom/a11y';
 const A11y = a11y;
 
-// Follow the OS preference (default)
+// Follow the page's html theme (default)
+<A11y className="fixed bottom-4 right-4" />
+
+// Equivalent explicit auto mode
 <A11y className="fixed bottom-4 right-4" theme="auto" />
 
 // Always light
@@ -320,7 +331,8 @@ All rules live in `@pigmilcom/a11y/styles` and can be freely overridden in your 
 Preferences are saved under the `localStorage` key `pgm-a11y` as a JSON
 object. The widget reads and re-applies them on first client render, so
 preferences survive page reloads and navigation. On SSR the widget hydrates
-without errors — all DOM access is guarded by a `mounted` flag.
+without errors — all DOM access is guarded by a `mounted` flag. Manual widget
+theme overrides are saved separately under `pgm-a11y-theme`.
 
 ---
 
