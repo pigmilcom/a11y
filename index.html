@@ -680,6 +680,26 @@ const A11y = a11y;
         var a11yScript = document.getElementById('pgm-a11y-script');
         var langPicker = document.getElementById('lang-picker');
 
+        function refreshA11yWidget() {
+            if (!a11yScript) return;
+
+            if (window.PigmilA11y && typeof window.PigmilA11y.unmount === 'function' && typeof window.PigmilA11y.mount === 'function') {
+                window.PigmilA11y.unmount();
+                window.PigmilA11y.mount();
+                return;
+            }
+
+            var nextScript = a11yScript.cloneNode(false);
+            var existingRoot = document.getElementById('pgm-a11y-root');
+            var existingStyles = document.getElementById('pgm-a11y-styles');
+
+            if (existingRoot) existingRoot.remove();
+            if (existingStyles) existingStyles.remove();
+
+            a11yScript.parentNode.replaceChild(nextScript, a11yScript);
+            a11yScript = nextScript;
+        }
+
         function syncA11yTheme(theme) {
             if (!a11yScript) return;
             a11yScript.dataset.theme = theme;
@@ -708,6 +728,7 @@ const A11y = a11y;
         function syncA11yLanguage(lang) {
             if (!a11yScript) return;
             a11yScript.dataset.lang = lang;
+            refreshA11yWidget();
         }
 
         // Wire up buttons
