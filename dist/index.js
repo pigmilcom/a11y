@@ -40,7 +40,6 @@ var DEFAULTS = {
   reduceMotion: false,
   highlightLinks: false,
   textSpacing: false,
-  adhd: false,
   dyslexia: false
 };
 function applyPrefs(prefs) {
@@ -55,7 +54,6 @@ function applyPrefs(prefs) {
     "a11y-reduce-motion": prefs.reduceMotion,
     "a11y-highlight-links": prefs.highlightLinks,
     "a11y-text-spacing": prefs.textSpacing,
-    "a11y-adhd": prefs.adhd,
     "a11y-dyslexia": prefs.dyslexia
   };
   for (const [cls, on] of Object.entries(map)) {
@@ -131,16 +129,6 @@ var TOGGLES = [
     label: "Text Spacing",
     desc: "Increase letter, word & line spacing",
     icon: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", className: "pgm-icon", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M4 6h16M4 10h16M4 14h16M4 18h16" }) })
-  },
-  {
-    key: "adhd",
-    label: "ADHD Friendly",
-    desc: "Remove distractions, add focus ring",
-    icon: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { viewBox: "0 0 24 24", className: "pgm-icon", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": "true", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 2L2 7l10 5 10-5-10-5z" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 17l10 5 10-5" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 12l10 5 10-5" })
-    ] })
   },
   {
     key: "dyslexia",

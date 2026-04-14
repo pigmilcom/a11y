@@ -114,7 +114,6 @@ pnpm add @pigmilcom/a11y
 - Reduce motion
 - Highlight links
 - Text spacing (WCAG 1.4.12)
-- ADHD-friendly mode
 - Dyslexia-friendly font
 - Persists in `localStorage`
 - Full keyboard & screen-reader support (`role="dialog"`, `aria-checked`, `aria-expanded`)
@@ -312,7 +311,6 @@ All rules live in `@pigmilcom/a11y/styles` and can be freely overridden in your 
 | `a11y-reduce-motion`    | Strips all animations & transitions       |
 | `a11y-highlight-links`  | Outlines every link and `[role="link"]`   |
 | `a11y-text-spacing`     | Letter / word / line spacing (WCAG 1.4.12)|
-| `a11y-adhd`             | Removes motion + adds strong focus ring   |
 | `a11y-dyslexia`         | Switches to a high-readability system font|
 
 ---

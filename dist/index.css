@@ -420,19 +420,6 @@ html.a11y-text-spacing *:not(input):not(textarea) {
     line-height:    1.85   !important;
 }
 
-/* ── ADHD friendly — kill all animation, add strong focus ring ──────────────── */
-html.a11y-adhd *,
-html.a11y-adhd *::before,
-html.a11y-adhd *::after {
-    animation:  none !important;
-    transition: none !important;
-}
-html.a11y-adhd :focus-visible {
-    outline:        3px solid #facc15 !important;
-    outline-offset: 3px               !important;
-    border-radius:  2px               !important;
-}
-
 /* ── Dyslexia-friendly — readable system font, generous spacing ─────────────── */
 html.a11y-dyslexia,
 html.a11y-dyslexia * {

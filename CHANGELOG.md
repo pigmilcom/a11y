@@ -7,6 +7,13 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.3] - 2026-04-14
+
+### Changed
+- Removed ADHD feature and references
+
+---
+
 ## [1.2.2] - 2026-04-10
 
 ### Changed
