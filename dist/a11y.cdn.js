@@ -30,9 +30,8 @@ accessibility class rules that get toggled on <html> by the widget.\r
     width: 2.5rem;\r
     height: 2.5rem;\r
     border: 1px solid rgba(255,255,255,0.1);\r
-    background: rgba(4,6,10,0.85);\r
-    color: rgba(255,255,255,0.6);\r
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);\r
+    background: rgba(4,6,10,0.95);\r
+    color: rgba(255,255,255,0.6); \r
     transition: border-color 200ms, color 200ms, background 200ms;\r
     cursor: pointer;\r
     border-radius: 0.25rem;\r
@@ -45,7 +44,6 @@ accessibility class rules that get toggled on <html> by the widget.\r
 }\r
 :where(.pgm-btn):focus-visible {\r
     outline: none;\r
-    box-shadow: 0 0 0 2px #00e5a0;\r
 }\r
 \r
 /* Modification dot */\r
