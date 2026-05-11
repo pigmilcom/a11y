@@ -277,7 +277,7 @@ accessibility class rules that get toggled on <html> by the widget.\r
 .pgm-pill--off { border-color: rgba(255,255,255,0.15); background: transparent; }\r
 .pgm-pill-knob {\r
     position: absolute;\r
-    top: 0.125rem;\r
+    top: 0.05rem;\r
     height: 0.75rem;\r
     width: 0.75rem;\r
     border-radius: 9999px;\r
